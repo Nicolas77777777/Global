@@ -21,5 +21,5 @@ const pool = new Pool({ // Crea una "piscina" di connessioni
 
 export default pool;
 
-d
+
 
