@@ -1,0 +1,40 @@
+/* 
+creare un backend e frontend in js con Node.
+Linguaggi simili in a JS sono TypeScript.
+
+Che cos' è Node ? 
+è un ambiente di esecuzione per JavaScript creato
+per far girare codice JavaScript al di fuori del browser,
+cioè sul tuo computer o su un server.
+
+per assicurarsi di aver installato Node 
+node -v
+ 
+npm
+Node Package Manager ( come il DOM di SPRING)
+serve per scaricare le librerie 
+È Il gestore di pacchetti ufficiale di Node.js
+
+per assicurarsi di aver installato npm
+npm -v
+
+Scaricare le librerie:
+
+express → per creare server
+pg → per usare PostgreSQL
+dotenv → per usare file .env
+
+configuro il file .env
+
+//////////////////////////////////
+
+Installare EJS SOLO SU FRONTEND.
+che cos'è EJS ?
+In alternativa React a View 
+Si usa spesso nei progetti Node.js con Express, quando vuoi:
+enerare contenuti dinamici
+(come liste di prodotti, nomi utenti, messaggi, ecc.),
+
+npm install ejs
+
+*/
