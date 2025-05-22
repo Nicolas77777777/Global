@@ -1,6 +1,6 @@
 // importo i moduli 
 import express from 'express'; // serve per creare il server
-import pool from './db.js';    // crea il 
+import pool from './db.js';    // importo il DB
 import dotenv from 'dotenv'; // file env serve per leggere le informazioni 
                                 // segrete da un file .env (es: password del database)
 
