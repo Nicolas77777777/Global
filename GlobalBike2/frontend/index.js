@@ -21,8 +21,9 @@ server.use(express.static(path.join(__dirname, 'public')));
 
 // Route per mostrare la pagina di login
 server.get('/', (req, res) => {
-  res.render('login'); // cercherà views/login.ejs
+  res.render('login', { errore: null });
 });
+
 
 // Route per ricevere il login (dati da form)
 server.post('/login', async (req, res) => {
@@ -36,17 +37,19 @@ server.post('/login', async (req, res) => {
     });
 
     if (risposta.ok) {
-      console.log("Login riuscito. Reindirizzo a /home.");
-      res.redirect('/home'); // ✅ REDIRECT AUTOMATICO
+      console.log("Login riuscito");
+      res.redirect('/home');
     } else {
-      console.log("Credenziali errate.");
-      res.send('⚠️ Login fallito. Utente non trovato.');
+      console.log("Credenziali errate");
+      // 👇 passa il messaggio come variabile EJS
+      res.render('login', { errore: 'Credenziali non valide' });
     }
   } catch (err) {
-    console.error("Errore nella richiesta al backend:", err);
-    res.status(500).send('Errore nella comunicazione con il server backend.');
+    console.error("Errore:", err);
+    res.render('login', { errore: 'Errore di connessione al server' });
   }
 });
+
 
 
 
