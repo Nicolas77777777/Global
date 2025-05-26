@@ -8,7 +8,7 @@ CREATE TABLE login (
 
 CREATE TABLE cliente (
     id_cliente SERIAL PRIMARY KEY,
-    numero_tessera VARCHAR(50) UNIQUE,
+    numero_tessera SERIAL UNIQUE,
     cellulare VARCHAR(20),
     nome VARCHAR(100),
     cognome_rag_soc VARCHAR(150) NOT NULL,

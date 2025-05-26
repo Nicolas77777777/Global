@@ -50,6 +50,77 @@ server.post('/controllologin', async (req, res) => {
   }
 });
 
+server.post('/cliente', async (req, res) => {
+  const {
+    cellulare,
+    nome,
+    cognome_rag_soc,
+    luogo_nascita,
+    data_nascita,
+    data_iscrizione,
+    data_scadenza,
+    indirizzo,
+    citta,
+    provincia,
+    cap,
+    cf_piva,
+    email,
+    note
+  } = req.body;
+
+  try {
+    const values = [
+      cellulare || null,
+      nome || null,
+      cognome_rag_soc || null,
+      luogo_nascita || null,
+      data_nascita || null,
+      data_iscrizione || null,
+      data_scadenza || null,
+      indirizzo || null,
+      citta || null,
+      provincia || null,
+      cap || null,
+      cf_piva || null,
+      email || null,
+      note || null
+    ];
+
+    const query = `
+      INSERT INTO cliente (
+        cellulare,
+        nome,
+        cognome_rag_soc,
+        luogo_nascita,
+        data_nascita,
+        data_iscrizione,
+        data_scadenza,
+        indirizzo,
+        citta,
+        provincia,
+        cap,
+        cf_piva,
+        email,
+        note
+      )
+      VALUES (
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
+        $11, $12, $13, $14
+      )
+      RETURNING *;
+    `;
+
+    const result = await pool.query(query, values);
+
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    console.error('Errore inserimento cliente:', err);
+    res.status(500).send('Errore nel server');
+  }
+});
+
+
+
 // Avvio del server
 server.listen(port, () => {
   console.log(`✅ Server in ascolto su http://localhost:${port}`);
