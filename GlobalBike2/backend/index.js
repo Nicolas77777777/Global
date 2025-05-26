@@ -11,6 +11,8 @@ const port = process.env.PORT || 3000;
 server.use(express.json()); // Caro server, quando ricevi dei dati (come nome utente e password),
 //                               aspettati che siano in formato JSON e capiscili".
 
+server.use(express.urlencoded({ extended: true }));
+
 // POST /login → Inserisce un utente // funzione asincronica 
 server.post('/login', async (req, res) => {
   const { username, password } = req.body;
