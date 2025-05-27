@@ -24,7 +24,6 @@ server.get('/', (req, res) => {
   res.render('login', { errore: null });
 });
 
-
 // Route per ricevere il login (dati da form)
 server.post('/login', async (req, res) => {
   const { username, password } = req.body;
@@ -38,7 +37,8 @@ server.post('/login', async (req, res) => {
 
     if (risposta.ok) {
       console.log("Login riuscito");
-      res.redirect('/home');
+      // Passa username nella query string
+      res.redirect(`/home?username=${encodeURIComponent(username)}`);
     } else {
       console.log("Credenziali errate");
       // 👇 passa il messaggio come variabile EJS
@@ -50,10 +50,10 @@ server.post('/login', async (req, res) => {
   }
 });
 
-
 // ✅ QUI AGGIUNGI LA ROTTA HOME
 server.get('/home', (req, res) => {
-  res.render('home'); // cercherà views/home.ejs
+  const username = req.query.username || 'Utente';
+  res.render('home', { username });
 });
 
 // Mostra la pagina di registrazione
@@ -84,8 +84,6 @@ server.post('/registrati', async (req, res) => {
     res.status(500).send('Errore nel server.');
   }
 });
-
-
 
 server.listen(port, () => {
   console.log(`✅ Server in ascolto su http://localhost:${port}`);
