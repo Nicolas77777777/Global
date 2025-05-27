@@ -51,8 +51,6 @@ server.post('/login', async (req, res) => {
 });
 
 
-
-
 // ✅ QUI AGGIUNGI LA ROTTA HOME
 server.get('/home', (req, res) => {
   res.render('home'); // cercherà views/home.ejs
