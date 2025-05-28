@@ -1,9 +1,11 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { pool } from './db.js'; // Connessione al DB PostgreSQL
 
+// Per risolvere __dirname in ES modules
 const __filename = fileURLToPath(import.meta.url);
-const __dirname  = path.dirname(__filename);
+const __dirname = path.dirname(__filename);
 
 const server = express();
 const port = 8081;
@@ -29,62 +31,30 @@ server.post('/login', async (req, res) => {
   const { username, password } = req.body;
 
   try {
-    const risposta = await fetch('http://localhost:3000/controllologin', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password })
-    });
+    // Query per controllare username e password
+    const result = await pool.query(
+      'SELECT * FROM login WHERE username = $1 AND password = $2',
+      [username, password]
+    );
 
-    if (risposta.ok) {
-      console.log("Login riuscito");
-      // Passa username nella query string
-      res.redirect(`/home?username=${encodeURIComponent(username)}`);
-    } else {
-      console.log("Credenziali errate");
-      // 👇 passa il messaggio come variabile EJS
-      res.render('login', { errore: 'Credenziali non valide' });
-    }
-  } catch (err) {
-    console.error("Errore:", err);
-    res.render('login', { errore: 'Errore di connessione al server' });
-  }
-});
-
-// ✅ QUI AGGIUNGI LA ROTTA HOME
-server.get('/home', (req, res) => {
-  const username = req.query.username || 'Utente';
-  res.render('home', { username });
-});
-
-// Mostra la pagina di registrazione
-server.get('/registrati', (req, res) => {
-  res.render('registrati'); // cerca views/registrati.ejs
-});
-
-// Invia i dati di registrazione al backend
-server.post('/registrati', async (req, res) => {
-  const { username, password } = req.body;
-
-  try {
-    const risposta = await fetch('http://localhost:8080/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password })
-    });
-
-    if (risposta.ok) {
-      console.log("Registrazione riuscita.");
+    if (result.rowCount > 0) {
+      // Login corretto: redirect alla home page
       res.redirect('/home');
     } else {
-      console.log("Errore nella registrazione.");
-      res.send('⚠️ Registrazione fallita.');
+      // Login errato: rimanda a login con messaggio errore
+      res.render('login', { errore: 'Credenziali errate' });
     }
-  } catch (err) {
-    console.error("Errore comunicazione col backend:", err);
-    res.status(500).send('Errore nel server.');
+  } catch (error) {
+    console.error('Errore nella verifica login:', error);
+    res.status(500).send('Errore interno del server');
   }
+});
+
+// Route per mostrare la home page dopo login
+server.get('/home', (req, res) => {
+  res.render('home');
 });
 
 server.listen(port, () => {
-  console.log(`✅ Server in ascolto su http://localhost:${port}`);
+  console.log(`Server avviato su http://localhost:${port}`);
 });
