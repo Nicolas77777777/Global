@@ -1,7 +1,8 @@
 import express from 'express';
 import path from 'path';
+//import fetch from 'node-fetch'
 import { fileURLToPath } from 'url';
-import { pool } from './db.js'; // Connessione al DB PostgreSQL
+
 
 // Per risolvere __dirname in ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -27,26 +28,35 @@ server.get('/', (req, res) => {
 });
 
 // Route per ricevere il login (dati da form)
+// Route per mostrare la pagina di login
+server.get('/', (req, res) => {
+  res.render('login'); // cercherà views/login.ejs
+});
+
+// Route per ricevere il login (dati da form)
 server.post('/login', async (req, res) => {
   const { username, password } = req.body;
 
   try {
-    // Query per controllare username e password
-    const result = await pool.query(
-      'SELECT * FROM login WHERE username = $1 AND password = $2',
-      [username, password]
-    );
+    // Chiamo backend per verificare credenziali
+    const response = await fetch('http://localhost:3000/controllologin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
 
-    if (result.rowCount > 0) {
-      // Login corretto: redirect alla home page
-      res.redirect('/home');
-    } else {
-      // Login errato: rimanda a login con messaggio errore
-      res.render('login', { errore: 'Credenziali errate' });
+    if (!response.ok) {
+      // Backend ha risposto con errore, mostro login con errore
+      return res.render('login', { errore: 'Credenziali errate' });
     }
+
+    // Login corretto: mostro la home (render)
+    const datiUtente = await response.json();
+
+    res.render('home', { utente: datiUtente[0] }); // Passa dati al template home.ejs
   } catch (error) {
-    console.error('Errore nella verifica login:', error);
-    res.status(500).send('Errore interno del server');
+    console.error(error);
+    res.render('login', { errore: 'Errore interno del server' });
   }
 });
 
@@ -54,6 +64,34 @@ server.post('/login', async (req, res) => {
 server.get('/home', (req, res) => {
   res.render('home');
 });
+
+// GET: mostra form nuovo cliente
+server.get('/clienti/nuovo', (req, res) => {
+  res.render('clienti_nuovo', { errore: null });
+});
+
+// Route per ricevere i dati dalla form del cliente 
+server.post('/clienti/nuovo', async (req, res) => {
+  try {
+    const response = await fetch('http://localhost:3000/cliente', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req.body)
+    });
+
+    if (response.ok) {
+      // Se vuoi puoi reindirizzare alla lista clienti o a home
+      res.redirect('/home');
+    } else {
+      const errorText = await response.text();
+      res.render('clienti_nuovo', { errore: errorText });
+    }
+  } catch (error) {
+    res.render('clienti_nuovo', { errore: 'Errore di connessione al server' });
+  }
+});
+
+
 
 server.listen(port, () => {
   console.log(`Server avviato su http://localhost:${port}`);
