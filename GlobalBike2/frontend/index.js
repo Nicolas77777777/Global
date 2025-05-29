@@ -1,8 +1,7 @@
 import express from 'express';
 import path from 'path';
-//import fetch from 'node-fetch'
+import fetch from 'node-fetch';
 import { fileURLToPath } from 'url';
-
 
 // Per risolvere __dirname in ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -28,12 +27,6 @@ server.get('/', (req, res) => {
 });
 
 // Route per ricevere il login (dati da form)
-// Route per mostrare la pagina di login
-server.get('/', (req, res) => {
-  res.render('login'); // cercherà views/login.ejs
-});
-
-// Route per ricevere il login (dati da form)
 server.post('/login', async (req, res) => {
   const { username, password } = req.body;
 
@@ -52,7 +45,6 @@ server.post('/login', async (req, res) => {
 
     // Login corretto: mostro la home (render)
     const datiUtente = await response.json();
-
     res.render('home', { utente: datiUtente[0] }); // Passa dati al template home.ejs
   } catch (error) {
     console.error(error);
@@ -67,7 +59,7 @@ server.get('/home', (req, res) => {
 
 // GET: mostra form nuovo cliente
 server.get('/clienti/nuovo', (req, res) => {
-  res.render('clienti_nuovo', { errore: null });
+  res.render('clienti_nuovo', { errore: null, successo: null });
 });
 
 // Route per ricevere i dati dalla form del cliente 
@@ -80,18 +72,16 @@ server.post('/clienti/nuovo', async (req, res) => {
     });
 
     if (response.ok) {
-      // Se vuoi puoi reindirizzare alla lista clienti o a home
-      res.redirect('/home');
+      res.render('clienti_nuovo', { errore: null, successo: 'Cliente salvato con successo!' });
     } else {
-      const errorText = await response.text();
-      res.render('clienti_nuovo', { errore: errorText });
+      res.render('clienti_nuovo', { errore: 'Errore nel salvataggio del cliente.', successo: null });
     }
-  } catch (error) {
-    res.render('clienti_nuovo', { errore: 'Errore di connessione al server' });
+
+  } catch (err) {
+    console.error('Errore nella richiesta fetch:', err);
+    res.render('clienti_nuovo', { errore: 'Errore durante il salvataggio', successo: null });
   }
 });
-
-
 
 server.listen(port, () => {
   console.log(`Server avviato su http://localhost:${port}`);
