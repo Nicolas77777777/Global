@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Nuovo Cliente - Associazione Bike and Hike</title>
+  <title>Aggiorna Cliente - Associazione Bike and Hike</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 
@@ -12,13 +12,11 @@
       background: url("/img/sfondobikemontagnaCitta.jpg") no-repeat center center fixed;
       background-size: cover;
     }
-
     .card {
       background-color: rgba(255, 255, 255, 0.92);
       border-radius: 10px;
       box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
     }
-
     .logo {
       width: 50px;
       height: 50px;
@@ -39,111 +37,99 @@
     </button>
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav ms-auto">
-        <li class="nav-item">
-          <a class="nav-link" href="/home">Home</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link active" href="/clienti/nuovo">Nuovo Cliente</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="/clienti">Elenco Clienti</a>
-        </li>
+        <li class="nav-item"><a class="nav-link" href="/home">Home</a></li>
+        <li class="nav-item"><a class="nav-link" href="/clienti">Elenco Clienti</a></li>
       </ul>
     </div>
   </div>
 </nav>
 
 <div class="container py-4">
-
   <div class="card shadow-sm">
     <div class="card-body">
       <div class="d-flex align-items-center mb-4">
         <img src="/img/logo.png" alt="Logo" class="logo me-3">
-        <h2 class="mb-0">Aggiungi Nuovo Cliente</h2>
+        <h2 class="mb-0">Aggiorna Cliente</h2>
       </div>
 
       <% if (errore) { %>
         <div class="alert alert-danger"><%= errore %></div>
       <% } %>
 
-      <% if (successo) { %>
-        <div class="alert alert-success"><%= successo %></div>
-      <% } %>
-
-      <form action="/clienti/nuovo" method="POST" novalidate>
+      <form action="/clienti/<%= cliente.id %>/aggiorna" method="POST" novalidate>
         <div class="row mb-3">
           <div class="col-md-6">
             <label class="form-label">Nome *</label>
-            <input type="text" name="nome" class="form-control" >
+            <input type="text" name="nome" class="form-control" value="<%= cliente.nome %>" required>
           </div>
           <div class="col-md-6">
             <label class="form-label">Cognome / Ragione Sociale *</label>
-            <input type="text" name="cognome_rag_soc" class="form-control" required>
+            <input type="text" name="cognome_rag_soc" class="form-control" value="<%= cliente.cognome_rag_soc %>" required>
           </div>
         </div>
 
         <div class="row mb-3">
           <div class="col-md-6">
             <label class="form-label">Luogo di nascita</label>
-            <input type="text" name="luogo_nascita" class="form-control">
+            <input type="text" name="luogo_nascita" class="form-control" value="<%= cliente.luogo_nascita %>">
           </div>
           <div class="col-md-6">
             <label class="form-label">Data di nascita *</label>
-            <input type="date" name="data_nascita" class="form-control" required>
+            <input type="date" name="data_nascita" class="form-control" value="<%= cliente.data_nascita %>" required>
           </div>
         </div>
 
         <div class="row mb-3">
           <div class="col-md-4">
             <label class="form-label">Data iscrizione *</label>
-            <input type="date" name="data_iscrizione" class="form-control" required>
+            <input type="date" name="data_iscrizione" class="form-control" value="<%= cliente.data_iscrizione %>" required>
           </div>
           <div class="col-md-4">
             <label class="form-label">Data scadenza *</label>
-            <input type="date" name="data_scadenza" class="form-control" required>
+            <input type="date" name="data_scadenza" class="form-control" value="<%= cliente.data_scadenza %>" required>
           </div>
           <div class="col-md-4">
             <label class="form-label">Cellulare</label>
-            <input type="text" name="cellulare" class="form-control">
+            <input type="text" name="cellulare" class="form-control" value="<%= cliente.cellulare %>">
           </div>
         </div>
 
         <div class="mb-3">
           <label class="form-label">Indirizzo</label>
-          <input type="text" name="indirizzo" class="form-control">
+          <input type="text" name="indirizzo" class="form-control" value="<%= cliente.indirizzo %>">
         </div>
 
         <div class="row mb-3">
           <div class="col-md-4">
             <label class="form-label">Città</label>
-            <input type="text" name="citta" class="form-control">
+            <input type="text" name="citta" class="form-control" value="<%= cliente.citta %>">
           </div>
           <div class="col-md-4">
             <label class="form-label">Provincia</label>
-            <input type="text" name="provincia" class="form-control">
+            <input type="text" name="provincia" class="form-control" value="<%= cliente.provincia %>">
           </div>
           <div class="col-md-4">
             <label class="form-label">CAP</label>
-            <input type="text" name="cap" class="form-control">
+            <input type="text" name="cap" class="form-control" value="<%= cliente.cap %>">
           </div>
         </div>
 
         <div class="mb-3">
           <label class="form-label">Codice Fiscale / Partita IVA</label>
-          <input type="text" name="cf_piva" class="form-control">
+          <input type="text" name="cf_piva" class="form-control" value="<%= cliente.cf_piva %>">
         </div>
 
         <div class="mb-3">
           <label class="form-label">Email *</label>
-          <input type="email" name="email" class="form-control" required>
+          <input type="email" name="email" class="form-control" value="<%= cliente.email %>" required>
         </div>
 
         <div class="mb-3">
           <label class="form-label">Note</label>
-          <textarea name="note" class="form-control" rows="3"></textarea>
+          <textarea name="note" class="form-control" rows="3"><%= cliente.note %></textarea>
         </div>
 
-        <button type="submit" class="btn btn-primary">Salva Cliente</button>
+        <button type="submit" class="btn btn-primary">Aggiorna Cliente</button>
       </form>
     </div>
   </div>
