@@ -160,6 +160,79 @@ server.get('/ricerca_cliente', async (req, res) => {
   }
 });
 
+server.post('/cliente/:id/modifica', async (req, res) => {
+  const id = req.params.id;
+
+  const {
+    cellulare,
+    nome,
+    cognome_rag_soc,
+    luogo_nascita,
+    data_nascita,
+    data_iscrizione,
+    data_scadenza,
+    indirizzo,
+    citta,
+    provincia,
+    cap,
+    cf_piva,
+    email,
+    note
+  } = req.body;
+
+  try {
+    const query = `
+      UPDATE cliente
+      SET cellulare = $1,
+          nome = $2,
+          cognome_rag_soc = $3,
+          luogo_nascita = $4,
+          data_nascita = $5,
+          data_iscrizione = $6,
+          data_scadenza = $7,
+          indirizzo = $8,
+          citta = $9,
+          provincia = $10,
+          cap = $11,
+          cf_piva = $12,
+          email = $13,
+          note = $14
+      WHERE id_cliente = $15
+      RETURNING *;
+    `;
+
+    const valori = [
+      cellulare,
+      nome,
+      cognome_rag_soc,
+      luogo_nascita,
+      data_nascita,
+      data_iscrizione,
+      data_scadenza,
+      indirizzo,
+      citta,
+      provincia,
+      cap,
+      cf_piva,
+      email,
+      note,
+      id
+    ];
+
+    const result = await pool.query(query, valori);
+
+    if (result.rowCount === 0) {
+      return res.status(404).send('Cliente non trovato');
+    }
+
+    res.status(200).json({ messaggio: 'Cliente aggiornato con successo' });
+  } catch (err) {
+    console.error('Errore aggiornamento cliente:', err);
+    res.status(500).send('Errore nel server');
+  }
+});
+
+
 
 
 // Avvio del server

@@ -62,12 +62,29 @@ server.get('/clienti/nuovo', (req, res) => {
   res.render('clienti_nuovo', { errore: null, successo: null });
 });
 
-// GET: mostra form ricerca utente
-server.get('/clienti/ricerca', (req, res) => {
+// ✅ CORRETTA: mostra solo il form per la ricerca cliente (usata da link/menu)
+server.get('/clienti/form', (req, res) => {
   res.render('cliente_ricerca', { errore: null, successo: null });
 });
 
-// Route per ricevere i dati dalla form del cliente 
+// ✅ CORRETTA: riceve la GET del form e inoltra la query al backend
+server.get('/clienti/ricerca', async (req, res) => {
+  try {
+    const queryString = new URLSearchParams(req.query).toString();
+
+    // Invia la richiesta al backend
+    const response = await fetch(`http://localhost:3000/ricerca_cliente?${queryString}`);
+    const clienti = await response.json();
+
+    // Renderizza la pagina risultati con i dati ricevuti
+    res.render('risultati_ricerca', { clienti });
+  } catch (err) {
+    console.error("Errore nella ricerca cliente:", err);
+    res.render('risultati_ricerca', { clienti: [] });
+  }
+});
+
+// Route per ricevere i dati dalla form del cliente
 server.post('/clienti/nuovo', async (req, res) => {
   try {
     const response = await fetch('http://localhost:3000/cliente', {
@@ -88,20 +105,30 @@ server.post('/clienti/nuovo', async (req, res) => {
   }
 });
 
-server.get('/clienti/ricerca', async (req, res) => {
-  try {
-    const params = new URLSearchParams(req.query).toString();
-    const response = await fetch(`http://localhost:3000/ricerca_cliente?${params}`);
-    const clienti = await response.json();
 
-    res.render('risultati_ricerca', { clienti });
-  } catch (error) {
-    console.error('Errore nel recupero dati dal backend:', error);
-    res.render('risultati_ricerca', { clienti: [] });
+//root per modificare il cliente 
+server.post('/clienti/:id/modifica', async (req, res) => {
+  const id = req.params.id;
+
+  try {
+    const response = await fetch(`http://localhost:3000/cliente/${id}/modifica`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req.body)
+    });
+
+    if (!response.ok) {
+      throw new Error("Errore nella risposta dal backend");
+    }
+
+    // Dopo il salvataggio, torna all'elenco o conferma salvataggio
+    res.redirect('/clienti');
+  } catch (err) {
+    console.error("Errore durante il salvataggio delle modifiche:", err);
+    res.status(500).send("Errore nel salvataggio delle modifiche");
   }
 });
 
-
 server.listen(port, () => {
-  console.log(`Server avviato su http://localhost:${port}`);
+  console.log(`✅ Server frontend avviato su http://localhost:${port}`);
 });
