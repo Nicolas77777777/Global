@@ -119,6 +119,47 @@ server.post('/cliente', async (req, res) => {
   }
 });
 
+server.get('/ricerca_cliente', async (req, res) => {
+  try {
+    const { cognome_rag_soc, nome, cf_piva, email, cellulare } = req.query;
+
+    const condizioni = [];
+    const valori = [];
+
+    if (cognome_rag_soc) {
+      condizioni.push(`cognome_rag_soc ILIKE $${condizioni.length + 1}`);
+      valori.push(`%${cognome_rag_soc}%`);
+    }
+    if (nome) {
+      condizioni.push(`nome ILIKE $${condizioni.length + 1}`);
+      valori.push(`%${nome}%`);
+    }
+    if (cf_piva) {
+      condizioni.push(`cf_piva ILIKE $${condizioni.length + 1}`);
+      valori.push(`%${cf_piva}%`);
+    }
+    if (email) {
+      condizioni.push(`email ILIKE $${condizioni.length + 1}`);
+      valori.push(`%${email}%`);
+    }
+    if (cellulare) {
+      condizioni.push(`cellulare ILIKE $${condizioni.length + 1}`);
+      valori.push(`%${cellulare}%`);
+    }
+
+    let query = 'SELECT * FROM cliente';
+    if (condizioni.length > 0) {
+      query += ' WHERE ' + condizioni.join(' AND ');
+    }
+
+    const result = await pool.query(query, valori);
+    res.json(result.rows); // invia i risultati al frontend
+  } catch (err) {
+    console.error('Errore durante la ricerca cliente:', err);
+    res.status(500).send('Errore nel server');
+  }
+});
+
 
 
 // Avvio del server

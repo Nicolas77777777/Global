@@ -62,6 +62,11 @@ server.get('/clienti/nuovo', (req, res) => {
   res.render('clienti_nuovo', { errore: null, successo: null });
 });
 
+// GET: mostra form ricerca utente
+server.get('/clienti/ricerca', (req, res) => {
+  res.render('cliente_ricerca', { errore: null, successo: null });
+});
+
 // Route per ricevere i dati dalla form del cliente 
 server.post('/clienti/nuovo', async (req, res) => {
   try {
@@ -82,6 +87,20 @@ server.post('/clienti/nuovo', async (req, res) => {
     res.render('clienti_nuovo', { errore: 'Errore durante il salvataggio', successo: null });
   }
 });
+
+server.get('/clienti/ricerca', async (req, res) => {
+  try {
+    const params = new URLSearchParams(req.query).toString();
+    const response = await fetch(`http://localhost:3000/ricerca_cliente?${params}`);
+    const clienti = await response.json();
+
+    res.render('risultati_ricerca', { clienti });
+  } catch (error) {
+    console.error('Errore nel recupero dati dal backend:', error);
+    res.render('risultati_ricerca', { clienti: [] });
+  }
+});
+
 
 server.listen(port, () => {
   console.log(`Server avviato su http://localhost:${port}`);
