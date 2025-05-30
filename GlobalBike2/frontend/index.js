@@ -106,6 +106,26 @@ server.post('/clienti/nuovo', async (req, res) => {
 });
 
 
+// root per prendere i dati del cliente 
+server.get('/clienti/:id/modifica', async (req, res) => {
+  const id = req.params.id;
+
+  try {
+    const response = await fetch(`http://localhost:3000/cliente/${id}/modifica`);
+
+    if (!response.ok) {
+      throw new Error("Cliente non trovato");
+    }
+
+    const cliente = await response.json();
+    res.render('cliente_modifica', { cliente });
+  } catch (err) {
+    console.error('Errore nel caricamento del cliente:', err);
+    res.status(500).send("Errore nel caricamento del cliente");
+  }
+});
+
+
 //root per modificare il cliente 
 server.post('/clienti/:id/modifica', async (req, res) => {
   const id = req.params.id;
@@ -122,7 +142,11 @@ server.post('/clienti/:id/modifica', async (req, res) => {
     }
 
     // Dopo il salvataggio, torna all'elenco o conferma salvataggio
-    res.redirect('/clienti');
+  res.render('cliente_modifica', {
+  cliente: { ...req.body, id_cliente: id }, // dati aggiornati
+  successo: 'Modifica avvenuta con successo.'
+});
+;
   } catch (err) {
     console.error("Errore durante il salvataggio delle modifiche:", err);
     res.status(500).send("Errore nel salvataggio delle modifiche");

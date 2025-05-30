@@ -1,19 +1,17 @@
 // importo i moduli 
 import express from 'express'; // serve per creare il server
 import pool from './db.js';    // importo il DB
-import dotenv from 'dotenv'; // file env serve per leggere le informazioni 
-                                // segrete da un file .env (es: password del database)
+import dotenv from 'dotenv';   // per leggere le variabili dal file .env
 
-dotenv.config(); // carica le variabili del file .env e le rende disponiobili al sistema
+dotenv.config(); // carica le variabili dal file .env
 
 const server = express(); // crea il Server 
 const port = process.env.PORT || 3000;
-server.use(express.json()); // Caro server, quando ricevi dei dati (come nome utente e password),
-//                               aspettati che siano in formato JSON e capiscili".
 
+server.use(express.json());
 server.use(express.urlencoded({ extended: true }));
 
-// POST /login → Inserisce un utente // funzione asincronica 
+// POST /login → Inserisce un utente
 server.post('/login', async (req, res) => {
   const { username, password } = req.body;
 
@@ -50,6 +48,7 @@ server.post('/controllologin', async (req, res) => {
   }
 });
 
+// POST /cliente → Inserisce un cliente
 server.post('/cliente', async (req, res) => {
   const {
     cellulare,
@@ -119,6 +118,7 @@ server.post('/cliente', async (req, res) => {
   }
 });
 
+// GET /ricerca_cliente → ricerca con parametri
 server.get('/ricerca_cliente', async (req, res) => {
   try {
     const { cognome_rag_soc, nome, cf_piva, email, cellulare } = req.query;
@@ -153,13 +153,14 @@ server.get('/ricerca_cliente', async (req, res) => {
     }
 
     const result = await pool.query(query, valori);
-    res.json(result.rows); // invia i risultati al frontend
+    res.json(result.rows);
   } catch (err) {
     console.error('Errore durante la ricerca cliente:', err);
     res.status(500).send('Errore nel server');
   }
 });
 
+// POST /cliente/:id/modifica → aggiorna cliente
 server.post('/cliente/:id/modifica', async (req, res) => {
   const id = req.params.id;
 
@@ -232,12 +233,25 @@ server.post('/cliente/:id/modifica', async (req, res) => {
   }
 });
 
+// ✅ GET /cliente/:id/modifica → restituisce i dati del cliente per modifica
+server.get('/cliente/:id/modifica', async (req, res) => {
+  const id = req.params.id;
 
+  try {
+    const result = await pool.query('SELECT * FROM cliente WHERE id_cliente = $1', [id]);
 
+    if (result.rowCount === 0) {
+      return res.status(404).send('Cliente non trovato');
+    }
+
+    res.json(result.rows[0]); // importante: singolo oggetto
+  } catch (err) {
+    console.error('Errore nel recupero cliente:', err);
+    res.status(500).send('Errore nel server');
+  }
+});
 
 // Avvio del server
 server.listen(port, () => {
   console.log(`✅ Server in ascolto su http://localhost:${port}`);
 });
-
-

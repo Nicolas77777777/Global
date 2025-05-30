@@ -37,4 +37,29 @@ enerare contenuti dinamici
 
 npm install ejs
 
-*/
+*///////// creare progetto dall'inizio 
+
+mkdir backend
+cd backend
+npm init -y
+
+npm install express pg dotenv
+npm install --save-dev nodemon
+
+express: server web
+
+pg: client PostgreSQL
+
+dotenv: gestisce variabili .env
+
+nodemon: ricarica automatica durante lo sviluppo
+
+🛠️ 3. Imposta lo script start in package.json
+
+Modifica package.json così:
+"scripts": {
+  "start": "node src/index.js",
+  "dev": "nodemon src/index.js"
+}
+mkdir -p src/controllers src/routes src/db src/models sql
+touch src/index.js src/db/db.js .env

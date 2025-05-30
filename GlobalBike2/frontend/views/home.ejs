@@ -3,19 +3,37 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Dashboard - Associazione Bike and Hike</title>
+  <title>Home - Associazione Bike and Hike</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
   <style>
     body {
+      background: url("/img/sfondobikemontagnaCitta.jpg") no-repeat center center fixed;
+      background-size: cover;
       min-height: 100vh;
       overflow-x: hidden;
     }
+    .navbar {
+      z-index: 1050;
+    }
+    .card {
+      background-color: rgba(255, 255, 255, 0.92);
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+    }
+    .logo {
+      width: 50px;
+      height: 50px;
+      object-fit: contain;
+    }
     .sidebar {
-      background-color: #f8f9fa;
+      background-color: rgba(255,255,255,0.95);
       border-right: 1px solid #dee2e6;
-      height: 100vh;
       padding: 1rem;
       position: fixed;
+      top: 70px;
+      bottom: 0;
+      overflow-y: auto;
       width: 250px;
       transition: transform 0.3s ease-in-out;
       z-index: 1030;
@@ -26,6 +44,7 @@
     }
     .content {
       margin-left: 250px;
+      margin-top: 80px;
       padding: 1.5rem;
       transition: margin-left 0.3s ease-in-out;
     }
@@ -85,12 +104,20 @@
 </head>
 <body>
 
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark bg-opacity-75">
+    <div class="container">
+      <a class="navbar-brand d-flex align-items-center" href="/home">
+        <img src="/img/logo.png" alt="Logo" width="40" height="40" class="me-2">
+        <span>Bike and Hike</span>
+      </a>
+    </div>
+  </nav>
+
   <div class="menu-toggle">&#9776;</div>
 
-  <!-- sidebar senza la classe "collapsed" -->
   <nav class="sidebar" id="sidebarMenu">
     <div class="search mb-3">
-      <input type="text" class="form-control" placeholder="Search" />
+      <input type="text" class="form-control" placeholder="Cerca..." />
     </div>
 
     <div>
@@ -105,7 +132,6 @@
         <a href="/clienti/nuovo" class="ps-4">Nuovo Cliente</a>
         <a href="/clienti/form" class="ps-4">Modifica Cliente</a>
         <a href="/clienti/lista" class="ps-4">Lista Clienti</a>
-        
       </div>
 
       <a class="d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#prodottiMenu" role="button" aria-expanded="false" aria-controls="prodottiMenu">
@@ -119,9 +145,38 @@
   </nav>
 
   <main class="content" id="contentArea">
-    <h1>Benvenuto nella Home</h1>
-    <p>Qui puoi gestire clienti, prodotti e altre funzionalità dell’associazione MTB.</p>
+    <div class="container">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <div class="d-flex align-items-center mb-4">
+            <img src="/img/logo.png" alt="Logo" class="logo me-3">
+            <h2 class="mb-0">Dashboard Associazione Bike and Hike</h2>
+          </div>
+          <p class="lead mt-2"> Benvenuto Da qui puoi gestire clienti, prodotti e altre funzionalità dell’associazione Bike and Hike.</p>
+
+        </div>
+      </div>
+    </div>
   </main>
+
+  <footer class="text-center text-white mt-5 py-4 bg-dark bg-opacity-75">
+    <div class="container">
+      <img src="/img/logo.png" alt="Logo" class="mb-2" width="50" height="50">
+      <p class="mb-2">Seguici su:</p>
+      <div class="d-flex justify-content-center gap-3 mb-2">
+        <a href="https://www.facebook.com" target="_blank" class="text-white text-decoration-none">
+          <i class="bi bi-facebook"></i> Facebook
+        </a>
+        <a href="https://www.instagram.com" target="_blank" class="text-white text-decoration-none">
+          <i class="bi bi-instagram"></i> Instagram
+        </a>
+        <a href="mailto:info@associazionebikeandHike.it" class="text-white text-decoration-none">
+          <i class="bi bi-envelope"></i> Email
+        </a>
+      </div>
+      <small>© <%= new Date().getFullYear() %> Associazione Bike and Hike - Tutti i diritti riservati</small>
+    </div>
+  </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
@@ -137,4 +192,3 @@
 
 </body>
 </html>
-
