@@ -3,7 +3,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import clienteRoutes from './routes/clienteRoutes.js';
 import loginRoutes from './routes/loginRoutes.js';
-import eventoRoutes from './routes/eventoRoutes.js';
+//import eventoRoutes from './routes/eventoRoutes.js';
 
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -23,7 +23,7 @@ server.use(express.urlencoded({ extended: true }));
 // Rotte
 server.use('/cliente', clienteRoutes);
 server.use('/', loginRoutes);
-server.use('/evento', eventoRoutes); // pronto per estensione
+//server.use('/evento', eventoRoutes); // pronto per estensione
 
 // Avvio server
 server.listen(port, () => {

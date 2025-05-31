@@ -17,6 +17,12 @@ server.use(express.urlencoded({ extended: true }));
 server.use(express.json());
 server.use(express.static(path.join(__dirname, 'public')));
 
+// Middleware per aggiungere titolo di default se non presente
+server.use((req, res, next) => {
+  res.locals.titolo = 'Bike and Hike'; // default
+  next();
+});
+
 // Rotte
 server.use('/', authRoutes);
 server.use('/clienti', clientiRoutes);
