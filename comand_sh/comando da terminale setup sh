@@ -1,0 +1,11 @@
+    Rendi eseguibile:
+
+chmod +x setup_frontend.sh
+chmod +x setup_backend.sh
+
+
+Esegui
+
+./setup_frontend.sh
+./setup_backend.sh
+
