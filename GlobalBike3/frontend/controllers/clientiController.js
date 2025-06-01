@@ -31,13 +31,29 @@ export const eseguiRicerca = async (req, res) => {
   try {
     const queryString = new URLSearchParams(req.query).toString();
     const response = await fetch(`http://localhost:3000/ricerca_cliente?${queryString}`);
+
+    if (!response.ok) {
+      const erroreTesto = await response.text();
+      console.error("⚠️ Errore HTTP:", erroreTesto);
+      throw new Error("Errore dal server");
+    }
+
+    // ✅ tenta di convertire solo se la risposta è JSON valida
+    const contentType = response.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+      const erroreHtml = await response.text();
+      console.error("⚠️ Risposta non JSON:", erroreHtml);
+      throw new Error("Risposta non valida dal server");
+    }
+
     const clienti = await response.json();
     res.render('risultati_ricerca', { clienti });
   } catch (err) {
-    console.error("Errore nella ricerca cliente:", err);
+    console.error("❌ Errore nella ricerca cliente:", err);
     res.render('risultati_ricerca', { clienti: [] });
   }
 };
+
 
 export const mostraModifica = async (req, res) => {
   const { id } = req.params;
