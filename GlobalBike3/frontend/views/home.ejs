@@ -1,19 +1,21 @@
-<%- include('partials/header') %>
+<%- include('partials/header', { titolo: 'Home - Bike and Hike' }) %>
+<%- include('partials/sidebar') %>
 
-<div class="container py-4">
-  <div class="card shadow-sm">
-    <div class="card-body">
-      <div class="d-flex align-items-center mb-4">
-        <img src="/img/logo.png" alt="Logo" class="logo me-3">
-        <h2 class="mb-0">Dashboard Associazione Bike and Hike</h2>
+<main class="content" id="contentArea" style="margin-left: 250px; margin-top: 70px;">
+  <div class="container py-4">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <div class="d-flex align-items-center mb-4">
+          <img src="/img/logo.png" alt="Logo" class="logo me-3">
+          <h2 class="mb-0">Dashboard Associazione Bike and Hike</h2>
+        </div>
+        <p class="lead mt-2">
+          Benvenuto nella dashboard dell'associazione!<br>
+          Da qui puoi gestire clienti, prodotti e altre funzionalità dell’associazione Bike and Hike.
+        </p>
       </div>
-      <p class="lead mt-2">
-        Benvenuto nella dashboard dell'associazione!
-        Da qui puoi gestire clienti, prodotti e altre funzionalità dell’associazione Hide and Bike.
-      </p>
     </div>
   </div>
-</div>
+</main>
 
 <%- include('partials/footer') %>
-
