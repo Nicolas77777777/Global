@@ -26,6 +26,11 @@ server.use((req, res, next) => {
 // Rotte
 server.use('/', authRoutes);
 server.use('/clienti', clientiRoutes);
+// in seguito andrà fatto anche il il controller 
+server.get('/home', (req, res) => {
+  res.render('home');
+});
+
 
 server.listen(port, () => {
   console.log(`✅ Server frontend avviato su http://localhost:${port}`);

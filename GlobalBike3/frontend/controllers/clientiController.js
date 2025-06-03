@@ -30,7 +30,7 @@ export const showFormRicerca = (req, res) => {
 export const eseguiRicerca = async (req, res) => {
   try {
     const queryString = new URLSearchParams(req.query).toString();
-    const response = await fetch(`http://localhost:3000/ricerca_cliente?${queryString}`);
+    const response = await fetch(`http://localhost:3000/cliente/ricerca?${queryString}`);
 
     if (!response.ok) {
       const erroreTesto = await response.text();

@@ -10,6 +10,7 @@ const router = express.Router();
 
 router.post('/', creaCliente);
 router.get('/ricerca', ricercaCliente);
+router.get('/:id', getClienteById);
 router.get('/:id/modifica', getClienteById);
 router.post('/:id/modifica', modificaCliente);
 
