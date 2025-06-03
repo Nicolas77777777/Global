@@ -3,6 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import authRoutes from './routes/auth.js';
 import clientiRoutes from './routes/clienti.js';
+import tipologicheRoutes from './routes/tipologiche.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -30,7 +31,7 @@ server.use('/clienti', clientiRoutes);
 server.get('/home', (req, res) => {
   res.render('home');
 });
-
+server.use('/tipologiche', tipologicheRoutes);
 
 server.listen(port, () => {
   console.log(`✅ Server frontend avviato su http://localhost:${port}`);

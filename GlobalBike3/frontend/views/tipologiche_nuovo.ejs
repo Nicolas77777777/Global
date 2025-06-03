@@ -1,0 +1,25 @@
+<%- include('partials/header', { titolo: 'Nuova Tipologia Evento' }) %>
+<%- include('partials/sidebar') %>
+
+<div class="container py-4">
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <div class="d-flex align-items-center mb-4">
+        <img src="/img/logo.png" alt="Logo" class="logo me-3">
+        <h2 class="mb-0">Inserisci una nuova tipologia evento</h2>
+      </div>
+
+      <form action="/tipologiche/nuovo" method="POST">
+        <div class="mb-3">
+          <label for="descrizione" class="form-label">Descrizione evento *</label>
+          <input type="text" class="form-control" id="descrizione" name="descrizione" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Salva</button>
+        <a href="/home" class="btn btn-secondary ms-2">Annulla</a>
+      </form>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

@@ -1,76 +1,74 @@
-<!-- Pulsante toggle per sidebar (visibile su schermi piccoli) -->
-<div class="menu-toggle position-fixed top-0 start-0 p-3 text-danger fs-4 d-md-none" style="z-index: 1051; cursor: pointer;">
-  &#9776;
-</div>
-
-<!-- Sidebar -->
-<nav class="sidebar bg-white border-end px-3 py-4 position-fixed h-100" id="sidebarMenu" style="width: 250px; z-index: 1050;">
-  <div class="mb-4 text-center">
-    <img src="/img/logo.png" alt="Logo" class="img-fluid" style="width: 50px; height: 50px;">
-    <h5 class="mt-2">Bike and Hike</h5>
+<div class="p-3">
+  <div class="search mb-3">
+    <input type="text" class="form-control" placeholder="Cerca..." />
   </div>
 
-  <div class="menu-title">Navigazione</div>
-  <ul class="nav flex-column">
-    <li class="nav-item"><a class="nav-link" href="/home">🏠 Home</a></li>
+  <div>
+    <div class="menu-title text-uppercase fw-bold border-bottom border-danger mb-2">Menu</div>
 
-    <!-- Clienti -->
-    <li class="nav-item">
-      <a class="nav-link" data-bs-toggle="collapse" href="#clientiMenu" role="button" aria-expanded="false" aria-controls="clientiMenu">👥 Clienti</a>
-      <div class="collapse" id="clientiMenu">
-        <ul class="nav flex-column ms-3">
-          <li class="nav-item"><a class="nav-link" href="/clienti/nuovo">➕ Nuovo Cliente</a></li>
-          <li class="nav-item"><a class="nav-link" href="/clienti/form">🔍 Ricerca/Modifica</a></li>
-        </ul>
+    <a href="/home" class="d-block mb-2 text-decoration-none">Home Page</a>
+
+    <div class="accordion" id="sidebarAccordion">
+      <!-- Clienti -->
+      <div class="accordion-item border-0">
+        <h2 class="accordion-header">
+          <button class="accordion-button collapsed bg-transparent px-0" type="button" data-bs-toggle="collapse" data-bs-target="#clientiCollapse">
+            Clienti
+          </button>
+        </h2>
+        <div id="clientiCollapse" class="accordion-collapse collapse" data-bs-parent="#sidebarAccordion">
+          <div class="accordion-body py-1 px-0">
+            <a href="/clienti/nuovo" class="ps-4 d-block text-decoration-none">Nuovo Cliente</a>
+            <a href="/clienti/form" class="ps-4 d-block text-decoration-none">Modifica Cliente</a>
+            <a href="/clienti/lista" class="ps-4 d-block text-decoration-none">Lista Clienti</a>
+          </div>
+        </div>
       </div>
-    </li>
 
-    <!-- Prodotti -->
-    <li class="nav-item">
-      <a class="nav-link" data-bs-toggle="collapse" href="#prodottiMenu" role="button" aria-expanded="false" aria-controls="prodottiMenu">📦 Prodotti</a>
-      <div class="collapse" id="prodottiMenu">
-        <ul class="nav flex-column ms-3">
-          <li class="nav-item"><a class="nav-link" href="/prodotti/nuovo">➕ Nuovo Prodotto</a></li>
-          <li class="nav-item"><a class="nav-link" href="/prodotti/lista">📋 Lista Prodotti</a></li>
-        </ul>
+      <!-- Prodotti -->
+      <div class="accordion-item border-0">
+        <h2 class="accordion-header">
+          <button class="accordion-button collapsed bg-transparent px-0" type="button" data-bs-toggle="collapse" data-bs-target="#prodottiCollapse">
+            Prodotti
+          </button>
+        </h2>
+        <div id="prodottiCollapse" class="accordion-collapse collapse" data-bs-parent="#sidebarAccordion">
+          <div class="accordion-body py-1 px-0">
+            <a href="/prodotti/nuovo" class="ps-4 d-block text-decoration-none">Nuovo Prodotto</a>
+            <a href="/prodotti/lista" class="ps-4 d-block text-decoration-none">Lista Prodotti</a>
+          </div>
+        </div>
       </div>
-    </li>
 
-    <!-- Tipologiche -->
-    <li class="nav-item">
-      <a class="nav-link" data-bs-toggle="collapse" href="#tipologicheMenu" role="button" aria-expanded="false" aria-controls="tipologicheMenu">🏷️ Tipologiche</a>
-      <div class="collapse" id="tipologicheMenu">
-        <ul class="nav flex-column ms-3">
-          <li class="nav-item"><a class="nav-link" href="/tipologiche/nuovo">➕ Inserimento Tipo Evento</a></li>
-          <li class="nav-item"><a class="nav-link" href="/tipologiche/lista">✏️ Modifica Tipo Evento</a></li>
-        </ul>
+      <!-- Tipologiche -->
+      <div class="accordion-item border-0">
+        <h2 class="accordion-header">
+          <button class="accordion-button collapsed bg-transparent px-0" type="button" data-bs-toggle="collapse" data-bs-target="#tipologicheCollapse">
+            Tipologiche
+          </button>
+        </h2>
+        <div id="tipologicheCollapse" class="accordion-collapse collapse" data-bs-parent="#sidebarAccordion">
+          <div class="accordion-body py-1 px-0">
+            <a href="/tipologiche/nuovo" class="ps-4 d-block text-decoration-none">Inserimento</a>
+            <a href="/tipologiche/modifica" class="ps-4 d-block text-decoration-none">Modifica</a>
+          </div>
+        </div>
       </div>
-    </li>
-  </ul>
-</nav>
 
-<!-- Script per toggle sidebar -->
-<script>
-  const toggle = document.querySelector('.menu-toggle');
-  const sidebar = document.getElementById('sidebarMenu');
-
-  toggle.addEventListener('click', () => {
-    sidebar.classList.toggle('d-none');
-  });
-</script>
-
-<style>
-  .sidebar {
-    width: 250px;
-    top: 0;
-    bottom: 0;
-    overflow-y: auto;
-    background-color: rgba(255, 255, 255, 0.95);
-  }
-
-  @media (max-width: 768px) {
-    .sidebar {
-      display: none;
-    }
-  }
-</style>
+      <!-- Eventi -->
+      <div class="accordion-item border-0">
+        <h2 class="accordion-header">
+          <button class="accordion-button collapsed bg-transparent px-0" type="button" data-bs-toggle="collapse" data-bs-target="#eventiCollapse">
+            Eventi
+          </button>
+        </h2>
+        <div id="eventiCollapse" class="accordion-collapse collapse" data-bs-parent="#sidebarAccordion">
+          <div class="accordion-body py-1 px-0">
+            <a href="/eventi/nuovo" class="ps-4 d-block text-decoration-none">Inserimento Evento</a>
+            <a href="/eventi/modifica" class="ps-4 d-block text-decoration-none">Modifica Evento</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
