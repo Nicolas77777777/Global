@@ -1,14 +1,19 @@
 // backend/src/index.js
+// importiamo le librerie
 import express from 'express';
 import dotenv from 'dotenv';
+
+//Importiamo le rotte dei vari moduli
 import clienteRoutes from './routes/clienteRoutes.js';
 import loginRoutes from './routes/loginRoutes.js';
+import tipologicheRoutes from './routes/tipologicheRoutes.js'; // <--- AGGIUNTA
+
 //import eventoRoutes from './routes/eventoRoutes.js';
 
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-// Setup __dirname per ES module
+// Setup __dirname per ES module Setup iniziale del percorso __dirname (serve per compatibilità con ESModules)
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -20,9 +25,11 @@ const port = process.env.PORT || 3000;
 server.use(express.json());
 server.use(express.urlencoded({ extended: true }));
 
-// Rotte
-server.use('/cliente', clienteRoutes);
+// ✅ Registriamo le rotte principali
+
 server.use('/', loginRoutes);
+server.use('/cliente', clienteRoutes);
+server.use('/tipologiche',tipologicheRoutes);
 //server.use('/evento', eventoRoutes); // pronto per estensione
 
 // Avvio server

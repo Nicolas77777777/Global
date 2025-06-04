@@ -1,9 +1,10 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
+
 import authRoutes from './routes/auth.js';
 import clientiRoutes from './routes/clienti.js';
-import tipologicheRoutes from './routes/tipologiche.js';
+import tipologicheRoutes from './routes/tipologiche.js'; // ✅ Aggiunto
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -18,20 +19,21 @@ server.use(express.urlencoded({ extended: true }));
 server.use(express.json());
 server.use(express.static(path.join(__dirname, 'public')));
 
-// Middleware per aggiungere titolo di default se non presente
+// Middleware per il titolo predefinito
 server.use((req, res, next) => {
-  res.locals.titolo = 'Bike and Hike'; // default
+  res.locals.titolo = 'Bike and Hike';
   next();
 });
 
-// Rotte
+// ✅ Rotte
 server.use('/', authRoutes);
 server.use('/clienti', clientiRoutes);
-// in seguito andrà fatto anche il il controller 
+server.use('/tipologiche', tipologicheRoutes); // ✅ Aggiunto
+
+// ✅ Pagina principale
 server.get('/home', (req, res) => {
   res.render('home');
 });
-server.use('/tipologiche', tipologicheRoutes);
 
 server.listen(port, () => {
   console.log(`✅ Server frontend avviato su http://localhost:${port}`);

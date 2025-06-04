@@ -4,8 +4,65 @@
       <img src="/img/logo.png" alt="Logo" width="40" height="40" class="me-2">
       <span>Bike and Hike</span>
     </a>
-    <button class="menu-toggle btn btn-outline-light d-lg-none" type="button">
-      ☰
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown">
+      <span class="navbar-toggler-icon"></span>
     </button>
+
+    <div class="collapse navbar-collapse" id="navbarNavDropdown">
+      <ul class="navbar-nav ms-auto">
+
+        <!-- Home -->
+        <li class="nav-item">
+          <a class="nav-link" href="/home">Home</a>
+        </li>
+
+        <!-- Clienti -->
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarClienti" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Clienti
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="navbarClienti">
+            <li><a class="dropdown-item" href="/clienti/nuovo">Nuovo Cliente</a></li>
+            <li><a class="dropdown-item" href="/clienti/form">Modifica Cliente</a></li>
+            <li><a class="dropdown-item" href="/clienti/lista">Lista Clienti</a></li>
+          </ul>
+        </li>
+
+        <!-- Prodotti -->
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarProdotti" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Prodotti
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="navbarProdotti">
+            <li><a class="dropdown-item" href="/prodotti/nuovo">Nuovo Prodotto</a></li>
+            <li><a class="dropdown-item" href="/prodotti/lista">Lista Prodotti</a></li>
+          </ul>
+        </li>
+
+        <!-- Tipologiche -->
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarTipologiche" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Tipologiche
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="navbarTipologiche">
+            <li><a class="dropdown-item" href="/tipologiche/nuovo">Inserisci Tipologica</a></li>
+            <li><a class="dropdown-item" href="/tipologiche/ricerca">Ricerca / Modifica</a></li>
+          </ul>
+        </li>
+
+        <!-- Eventi -->
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarEventi" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Eventi
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="navbarEventi">
+            <li><a class="dropdown-item" href="/eventi/nuovo">Inserisci Evento</a></li>
+            <li><a class="dropdown-item" href="/eventi/ricerca">Ricerca / Modifica</a></li>
+          </ul>
+        </li>
+
+      </ul>
+    </div>
   </div>
 </nav>
