@@ -1,15 +1,27 @@
-<%- include('../partials/header') %>
+<%- include('../partials/header', { titolo: 'Risultati Ricerca Tipologiche' }) %>
 
 <div class="container py-4">
   <div class="card shadow-sm">
     <div class="card-body">
+
+      <!-- Titolo sezione -->
       <div class="d-flex align-items-center mb-4">
         <img src="/img/logo.png" alt="Logo" class="logo me-3" style="width: 50px; height: 50px;">
         <h2 class="mb-0">Risultati Ricerca Tipologiche</h2>
       </div>
 
+      <!-- Messaggi -->
+      <% if (errore) { %>
+        <div class="alert alert-danger"><%= errore %></div>
+      <% } %>
+
+      <% if (successo) { %>
+        <div class="alert alert-success"><%= successo %></div>
+      <% } %>
+
+      <!-- Tabella risultati -->
       <% if (tipologiche.length === 0) { %>
-        <p class="text-danger">Nessuna tipologica trovata.</p>
+        <p class="text-muted">Nessuna tipologica trovata.</p>
       <% } else { %>
         <table class="table table-bordered table-striped">
           <thead class="table-dark">
@@ -33,6 +45,7 @@
           </tbody>
         </table>
       <% } %>
+
     </div>
   </div>
 </div>

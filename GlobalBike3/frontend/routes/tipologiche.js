@@ -6,9 +6,10 @@ import {
   mostraFormInserimento,
   salvaNuovaTipologica,
   mostraFormRicerca,
-  eseguiRicercaTipologiche,
+  ricercaTipologiche,
   mostraFormModifica,
-  salvaModificaTipologica
+  salvaModificaTipologica,
+  eliminaTipologica  // ✅ AGGIUNTO: Controller per eliminazione
 } from '../controllers/tipologicheController.js';
 
 const router = express.Router();
@@ -19,16 +20,24 @@ router.get('/nuovo', mostraFormInserimento);
 // 🔽 Salva una nuova tipologica (chiamata POST dal form)
 router.post('/nuovo', salvaNuovaTipologica);
 
-// 🔽 Mostra il form per la ricerca tipologiche
-router.get('/ricerca', mostraFormRicerca);
-
-// 🔽 Esegue la ricerca delle tipologiche
-router.get('/risultati', eseguiRicercaTipologiche);
+// 🔽 CORRETTO: Gestisce sia il form che la ricerca sullo stesso endpoint
+router.get('/ricerca', (req, res) => {
+  // Se ci sono parametri di ricerca, esegui la ricerca
+  if (Object.keys(req.query).length > 0 && req.query.descrizione) {
+    ricercaTipologiche(req, res);
+  } else {
+    // Altrimenti mostra il form vuoto
+    mostraFormRicerca(req, res);
+  }
+});
 
 // 🔽 Mostra il form per modificare una tipologica
 router.get('/:id/modifica', mostraFormModifica);
 
 // 🔽 Salva la modifica della tipologica
 router.post('/:id/modifica', salvaModificaTipologica);
+
+// 🔽 ✅ NUOVO: Elimina una tipologica
+router.post('/:id/elimina', eliminaTipologica);
 
 export default router;

@@ -22,7 +22,6 @@ export async function creaTipologica(req, res) {
   }
 }
 
-
 // Ricerca tipologiche per descrizione (case insensitive, parziale)
 export async function ricercaTipologiche(req, res) {
   const { descrizione } = req.query;
@@ -41,6 +40,24 @@ export async function ricercaTipologiche(req, res) {
   } catch (err) {
     console.error("Errore durante la ricerca delle tipologiche:", err);
     res.status(500).send("Errore del server");
+  }
+}
+
+// ✅ NUOVO: Recupera una tipologica per ID (per il form modifica)
+export async function getTipologicaById(req, res) {
+  const { id } = req.params;
+
+  try {
+    const result = await pool.query('SELECT * FROM tipologiche WHERE id_tipologica = $1', [id]);
+
+    if (result.rowCount === 0) {
+      return res.status(404).send('Tipologica non trovata');
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Errore nel recupero tipologica:', err);
+    res.status(500).send('Errore nel server');
   }
 }
 
@@ -95,6 +112,3 @@ export async function eliminaTipologica(req, res) {
     res.status(500).send("Errore nel server");
   }
 }
-
-
-
