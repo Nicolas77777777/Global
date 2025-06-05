@@ -1,0 +1,101 @@
+<%- include('../partials/header', { titolo: 'Ricerca Eventi' }) %>
+
+<div class="container mt-5">
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <h3 class="mb-4">Ricerca Eventi</h3>
+
+      <% if (errore) { %>
+        <div class="alert alert-danger"><%= errore %></div>
+      <% } %>
+      <% if (successo) { %>
+        <div class="alert alert-success"><%= successo %></div>
+      <% } %>
+
+      <form action="/eventi/ricerca" method="GET" class="mb-4">
+        <div class="row">
+          <div class="col-md-8 mb-3">
+            <label for="titolo" class="form-label">Cerca per titolo</label>
+            <input type="text" name="titolo" id="titolo" 
+                   class="form-control" 
+                   placeholder="Inserisci il titolo dell'evento..."
+                   value="<%= typeof titolo !== 'undefined' ? titolo : '' %>">
+          </div>
+          <div class="col-md-4 mb-3">
+            <label class="form-label">&nbsp;</label>
+            <div class="d-grid">
+              <button type="submit" class="btn btn-primary">🔍 Cerca</button>
+            </div>
+          </div>
+        </div>
+      </form>
+
+      <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+        <a href="/eventi/nuovo" class="btn btn-success">➕ Nuovo Evento</a>
+      </div>
+
+      <!-- Se ci sono risultati di ricerca, mostrarli qui -->
+      <% if (typeof eventi !== 'undefined' && eventi) { %>
+        <hr>
+        <h4>Risultati della ricerca</h4>
+        
+        <% if (eventi.length === 0) { %>
+          <div class="alert alert-info">Nessun evento trovato con i criteri specificati.</div>
+        <% } else { %>
+          <div class="table-responsive">
+            <table class="table table-striped table-hover">
+              <thead class="table-dark">
+                <tr>
+                  <th>Titolo</th>
+                  <th>Categoria</th>
+                  <th>Data Inizio</th>
+                  <th>Luogo</th>
+                  <th>Azioni</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% eventi.forEach(e => { %>
+                  <tr>
+                    <td><strong><%= e.titolo %></strong></td>
+                    <td><span class="badge bg-secondary"><%= e.categoria_descrizione || 'N/A' %></span></td>
+                    <td><%= new Date(e.data_inizio).toLocaleDateString('it-IT') %></td>
+                    <td><%= e.luogo || 'Non specificato' %></td>
+                    <td>
+                      <div class="btn-group btn-group-sm">
+                        <a href="/eventi/<%= e.id_evento %>/modifica" 
+                           class="btn btn-outline-warning">✏️ Modifica</a>
+                        <button onclick="eliminaEvento(<%= e.id_evento %>)" 
+                                class="btn btn-outline-danger">🗑️ Elimina</button>
+                      </div>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        <% } %>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<script>
+function eliminaEvento(id) {
+  if (confirm('Sei sicuro di voler eliminare questo evento?')) {
+    fetch(`/api/eventi/${id}/elimina`, { method: 'DELETE' })
+      .then(response => {
+        if (response.ok) {
+          location.reload();
+        } else {
+          alert('Errore nell\'eliminazione dell\'evento');
+        }
+      })
+      .catch(err => {
+        console.error('Errore:', err);
+        alert('Errore di connessione');
+      });
+  }
+}
+</script>
+
+<%- include('../partials/footer') %>

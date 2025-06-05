@@ -5,6 +5,8 @@ import { fileURLToPath } from 'url';
 import authRoutes from './routes/auth.js';
 import clientiRoutes from './routes/clienti.js';
 import tipologicheRoutes from './routes/tipologiche.js'; // ✅ Aggiunto
+import eventiRoutes from './routes/eventi.js';
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -29,6 +31,7 @@ server.use((req, res, next) => {
 server.use('/', authRoutes);
 server.use('/clienti', clientiRoutes);
 server.use('/tipologiche', tipologicheRoutes); // ✅ Aggiunto
+server.use('/eventi', eventiRoutes);
 
 // ✅ Pagina principale
 server.get('/home', (req, res) => {
