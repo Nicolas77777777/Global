@@ -31,7 +31,7 @@ export const mostraFormNuovoEvento = async (req, res) => {
 export const salvaNuovoEvento = async (req, res) => {
   try {
     // ✅ CORRETTO: endpoint eventi (assumendo che il backend usi /eventi)
-    const response = await fetch('http://localhost:3000/eventi/nuovo', {
+    const response = await fetch('http://localhost:3000/evento/nuovo', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -105,7 +105,7 @@ export const eseguiRicercaEvento = async (req, res) => {
     console.log('🔍 Ricerca eventi con query:', query);
     
     // ✅ CORRETTO: endpoint per ricerca eventi (senza /api)
-    const response = await fetch(`http://localhost:3000/eventi/ricerca?${query}`);
+    const response = await fetch(`http://localhost:3000/evento/ricerca?${query}`);
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -143,7 +143,7 @@ export const mostraFormModificaEvento = async (req, res) => {
     
     // Carica evento E tipologiche
     const [eventoRes, tipologicheRes] = await Promise.all([
-      fetch(`http://localhost:3000/eventi/${id}`),
+      fetch(`http://localhost:3000/evento/${id}`),
       fetch('http://localhost:3000/tipologiche/ricerca')
     ]);
 
@@ -182,7 +182,7 @@ export const salvaModificaEvento = async (req, res) => {
     console.log('💾 Salvataggio modifica evento ID:', id, 'Dati:', req.body);
     
     // ✅ CORRETTO: endpoint per modifica eventi
-    const response = await fetch(`http://localhost:3000/eventi/${id}/modifica`, {
+    const response = await fetch(`http://localhost:3000/evento/${id}/modifica`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -220,7 +220,7 @@ export const eliminaEvento = async (req, res) => {
     console.log('🗑️ Eliminazione evento ID:', id);
     
     // ✅ Chiamata DELETE al backend
-    const response = await fetch(`http://localhost:3000/eventi/${id}/elimina`, {
+    const response = await fetch(`http://localhost:3000/evento/${id}/elimina`, {
       method: 'DELETE'
     });
 
