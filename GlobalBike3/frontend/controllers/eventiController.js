@@ -3,9 +3,15 @@ import fetch from 'node-fetch';
 // 🔽 Mostra il form per creare un nuovo evento
 export const mostraFormNuovoEvento = async (req, res) => {
   try {
-    // ✅ CORRETTO: endpoint per tipologiche
-    const response = await fetch('http://localhost:3000/api/tipologiche/ricerca');
+    // ✅ CORRETTO: usa lo stesso endpoint che funziona per tipologiche
+    const response = await fetch('http://localhost:3000/tipologiche/ricerca');
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
     const tipologiche = await response.json();
+    console.log('✅ Tipologiche caricate per nuovo evento:', tipologiche.length);
 
     res.render('eventi_nuovo', {
       errore: null,
@@ -13,7 +19,7 @@ export const mostraFormNuovoEvento = async (req, res) => {
       tipologiche
     });
   } catch (err) {
-    console.error("Errore nel caricamento delle tipologiche:", err);
+    console.error("❌ Errore nel caricamento delle tipologiche:", err);
     res.render('eventi_nuovo', {
       errore: "Errore nel recupero delle categorie.",
       successo: null,
@@ -24,13 +30,13 @@ export const mostraFormNuovoEvento = async (req, res) => {
 
 export const salvaNuovoEvento = async (req, res) => {
   try {
-    // ✅ CORRETTO: endpoint per creare evento
-    const response = await fetch('http://localhost:3000/api/eventi/nuovo', {
+    // ✅ CORRETTO: endpoint eventi (assumendo che il backend usi /eventi)
+    const response = await fetch('http://localhost:3000/eventi/nuovo', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         titolo: req.body.titolo,
-        categoria: req.body.categoria, // ✅ CORRETTO: campo categoria
+        categoria: req.body.categoria,
         data_inizio: req.body.data_inizio,
         data_fine: req.body.data_fine,
         orario_inizio: req.body.orario_inizio,
@@ -42,7 +48,7 @@ export const salvaNuovoEvento = async (req, res) => {
     });
 
     // Recupera sempre le tipologiche per ri-renderizzare la pagina
-    const tipologicheRes = await fetch('http://localhost:3000/api/tipologiche/ricerca');
+    const tipologicheRes = await fetch('http://localhost:3000/tipologiche/ricerca');
     const tipologiche = await tipologicheRes.json();
 
     if (response.ok) {
@@ -60,38 +66,70 @@ export const salvaNuovoEvento = async (req, res) => {
       });
     }
   } catch (err) {
-    console.error('Errore:', err);
-    res.render('eventi_nuovo', {
-      errore: 'Errore nella comunicazione con il server',
-      successo: null,
-      tipologiche: []
-    });
+    console.error('❌ Errore salvataggio evento:', err);
+    
+    // Carica tipologiche anche in caso di errore
+    try {
+      const tipologicheRes = await fetch('http://localhost:3000/tipologiche/ricerca');
+      const tipologiche = await tipologicheRes.json();
+      
+      res.render('eventi_nuovo', {
+        errore: 'Errore nella comunicazione con il server',
+        successo: null,
+        tipologiche
+      });
+    } catch {
+      res.render('eventi_nuovo', {
+        errore: 'Errore nella comunicazione con il server',
+        successo: null,
+        tipologiche: []
+      });
+    }
   }
 };
 
-// ✅ Mostra la pagina di ricerca evento
+// ✅ Mostra la pagina di ricerca evento (semplificata per il debugging)
 export const mostraFormRicercaEvento = (req, res) => {
-  res.render('eventi_ricerca', { errore: null, successo: null });
+  res.render('eventi_ricerca', { 
+    errore: null, 
+    successo: null, 
+    eventi: null,
+    req: req 
+  });
 };
 
 // ✅ Esegue la ricerca evento e mostra i risultati
 export const eseguiRicercaEvento = async (req, res) => {
   try {
     const query = new URLSearchParams(req.query).toString();
-    // ✅ CORRETTO: endpoint per ricerca eventi
-    const response = await fetch(`http://localhost:3000/api/eventi/ricerca?${query}`);
+    console.log('🔍 Ricerca eventi con query:', query);
+    
+    // ✅ CORRETTO: endpoint per ricerca eventi (senza /api)
+    const response = await fetch(`http://localhost:3000/eventi/ricerca?${query}`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
     const eventi = await response.json();
+    console.log('✅ Eventi trovati:', eventi.length);
 
-    res.render('eventi_risultati', {
+    // ✅ Usa la stessa logica delle tipologiche
+    res.render('eventi_ricerca', {
       errore: null,
-      successo: req.query.titolo ? `Ricerca per "${req.query.titolo}" completata` : null,
-      eventi
+      successo: eventi.length > 0 
+        ? `Trovati ${eventi.length} eventi` 
+        : 'Nessun evento trovato',
+      eventi,
+      req: req
     });
   } catch (err) {
-    console.error("❌ Errore nella ricerca:", err);
+    console.error("❌ Errore nella ricerca eventi:", err);
     res.render('eventi_ricerca', {
       errore: 'Errore durante la ricerca evento',
-      successo: null
+      successo: null,
+      eventi: [],
+      req: req
     });
   }
 };
@@ -101,16 +139,22 @@ export const mostraFormModificaEvento = async (req, res) => {
   const { id } = req.params;
 
   try {
+    console.log('📝 Caricamento evento per modifica, ID:', id);
+    
     // Carica evento E tipologiche
     const [eventoRes, tipologicheRes] = await Promise.all([
-      fetch(`http://localhost:3000/api/eventi/${id}`),
-      fetch('http://localhost:3000/api/tipologiche/ricerca')
+      fetch(`http://localhost:3000/eventi/${id}`),
+      fetch('http://localhost:3000/tipologiche/ricerca')
     ]);
+
+    if (!eventoRes.ok) {
+      throw new Error(`Evento non trovato: ${eventoRes.status}`);
+    }
 
     const evento = await eventoRes.json();
     const tipologiche = await tipologicheRes.json();
 
-    // ✅ AGGIUNTO: formatta le date per l'input HTML
+    // ✅ Formatta le date per l'input HTML
     if (evento.data_inizio) {
       evento.data_inizio = new Date(evento.data_inizio).toISOString().split('T')[0];
     }
@@ -118,14 +162,15 @@ export const mostraFormModificaEvento = async (req, res) => {
       evento.data_fine = new Date(evento.data_fine).toISOString().split('T')[0];
     }
 
+    console.log('✅ Evento e tipologiche caricati per modifica');
     res.render('eventi_modifica', { 
       evento, 
-      tipologiche, // ✅ AGGIUNTO: passa le tipologiche
+      tipologiche,
       errore: null 
     });
   } catch (err) {
     console.error("❌ Errore caricamento evento:", err);
-    res.status(500).send("Errore nel caricamento dell'evento");
+    res.status(500).send(`Errore nel caricamento dell'evento: ${err.message}`);
   }
 };
 
@@ -134,13 +179,15 @@ export const salvaModificaEvento = async (req, res) => {
   const { id } = req.params;
 
   try {
-    // ✅ CORRETTO: endpoint e metodo per modifica
-    const response = await fetch(`http://localhost:3000/api/eventi/${id}/modifica`, {
-      method: 'PUT', // ✅ CORRETTO: usa PUT invece di POST
+    console.log('💾 Salvataggio modifica evento ID:', id, 'Dati:', req.body);
+    
+    // ✅ CORRETTO: endpoint per modifica eventi
+    const response = await fetch(`http://localhost:3000/eventi/${id}/modifica`, {
+      method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         titolo: req.body.titolo,
-        categoria: req.body.categoria, // ✅ CORRETTO: campo categoria
+        categoria: req.body.categoria,
         data_inizio: req.body.data_inizio,
         data_fine: req.body.data_fine,
         orario_inizio: req.body.orario_inizio,
@@ -152,13 +199,44 @@ export const salvaModificaEvento = async (req, res) => {
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.errore || "Errore salvataggio");
+      const errorText = await response.text();
+      throw new Error(`Errore backend: ${response.status} - ${errorText}`);
     }
 
-    res.redirect('/eventi/ricerca?successo=modificato');
+    const result = await response.json();
+    console.log('✅ Evento modificato con successo:', result);
+    
+    res.redirect('/eventi/ricerca?successo=Evento modificato con successo');
   } catch (err) {
     console.error("❌ Errore durante la modifica:", err);
-    res.status(500).send("Errore nel salvataggio delle modifiche");
+    res.status(500).send(`Errore nel salvataggio delle modifiche: ${err.message}`);
+  }
+};
+
+// ✅ NUOVO: Elimina un evento
+export const eliminaEvento = async (req, res) => {
+  const { id } = req.params;
+  try {
+    console.log('🗑️ Eliminazione evento ID:', id);
+    
+    // ✅ Chiamata DELETE al backend
+    const response = await fetch(`http://localhost:3000/eventi/${id}/elimina`, {
+      method: 'DELETE'
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ Errore eliminazione backend:', response.status, errorText);
+      throw new Error(`Errore backend: ${response.status} - ${errorText}`);
+    }
+    
+    const result = await response.json();
+    console.log('✅ Evento eliminato con successo:', result);
+    
+    // ✅ Redirect alla ricerca con messaggio di successo
+    res.redirect('/eventi/ricerca?successo=Evento eliminato con successo');
+  } catch (err) {
+    console.error('❌ Errore eliminazione:', err);
+    res.redirect('/eventi/ricerca?errore=' + encodeURIComponent(`Errore nell'eliminazione: ${err.message}`));
   }
 };

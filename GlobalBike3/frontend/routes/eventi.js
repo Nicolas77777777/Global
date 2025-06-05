@@ -5,7 +5,8 @@ import {
   mostraFormRicercaEvento,
   eseguiRicercaEvento,
   mostraFormModificaEvento,
-  salvaModificaEvento
+  salvaModificaEvento,
+  eliminaEvento  // ✅ AGGIUNTO: import eliminazione
 } from '../controllers/eventiController.js';
 
 const router = express.Router();
@@ -14,18 +15,13 @@ const router = express.Router();
 router.get('/nuovo', mostraFormNuovoEvento);
 router.post('/nuovo', salvaNuovoEvento);
 
-// ✅ Ricerca eventi
-router.get('/ricerca', mostraFormRicercaEvento);
-router.get('/risultati', eseguiRicercaEvento);
-
-// ✅ CORREZIONE: la ricerca dovrebbe essere gestita dalla stessa route
-// Combina ricerca form e risultati
-router.get('/ricerca', (req, res, next) => {
-  if (Object.keys(req.query).length > 0) {
-    // Se ci sono parametri di query, esegui la ricerca
+// ✅ CORRETTA: Ricerca eventi - stessa logica delle tipologiche
+router.get('/ricerca', (req, res) => {
+  // Se ci sono parametri di ricerca, esegui la ricerca
+  if (Object.keys(req.query).length > 0 && (req.query.titolo || req.query.categoria || req.query.luogo)) {
     eseguiRicercaEvento(req, res);
   } else {
-    // Altrimenti mostra il form
+    // Altrimenti mostra il form vuoto
     mostraFormRicercaEvento(req, res);
   }
 });
@@ -33,5 +29,8 @@ router.get('/ricerca', (req, res, next) => {
 // ✅ Modifica evento
 router.get('/:id/modifica', mostraFormModificaEvento);
 router.post('/:id/modifica', salvaModificaEvento);
+
+// ✅ Eliminazione evento
+router.post('/:id/elimina', eliminaEvento);
 
 export default router;
