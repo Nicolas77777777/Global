@@ -7,8 +7,8 @@ import dotenv from 'dotenv';
 import clienteRoutes from './routes/clienteRoutes.js';
 import loginRoutes from './routes/loginRoutes.js';
 import tipologicheRoutes from './routes/tipologicheRoutes.js'; // <--- AGGIUNTA
-
-//import eventoRoutes from './routes/eventoRoutes.js';
+import eventoRoutes from './routes/eventoRoutes.js';
+import clienteEventoRoutes from './routes/clienteEventoRoutes.js';
 
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -30,7 +30,8 @@ server.use(express.urlencoded({ extended: true }));
 server.use('/', loginRoutes);
 server.use('/cliente', clienteRoutes);
 server.use('/tipologiche',tipologicheRoutes);
-//server.use('/evento', eventoRoutes); // pronto per estensione
+server.use('/evento', eventoRoutes); // pronto per estensione
+server.use('/iscrizioni', clienteEventoRoutes);
 
 // Avvio server
 server.listen(port, () => {
