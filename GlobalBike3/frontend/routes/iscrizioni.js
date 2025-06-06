@@ -5,7 +5,8 @@ import {
   selezionaEvento,
   ricercaClienti,
   salvaIscrizione,
-  mostraIscrittiEvento
+  mostraIscrittiEvento,
+  exportExcelIscrittiEvento
 } from '../controllers/iscrizioniController.js';
 
 const router = express.Router();
@@ -20,10 +21,11 @@ router.post('/seleziona-evento', selezionaEvento);
 router.get('/ricerca-cliente', ricercaClienti);
 
 
-
 // ✅ Salva l'iscrizione (cliente → evento)
 router.post('/', salvaIscrizione);
 
 router.get('/evento/:id_evento/iscritti', mostraIscrittiEvento);
+
+router.get('/evento/:id_evento/export', exportExcelIscrittiEvento);
 
 export default router;

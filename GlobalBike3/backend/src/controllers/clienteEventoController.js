@@ -1,4 +1,5 @@
 import pool from '../db/db.js';
+import ExcelJS from 'exceljs';
 
 // ✅ Aggiungi un cliente a un evento
 export async function iscriviCliente(req, res) {
@@ -87,3 +88,98 @@ export async function rimuoviIscrizione(req, res) {
     res.status(500).json({ errore: 'Errore nel server' });
   }
 }
+
+
+export async function esportaIscrittiEvento(req, res) {
+  const { id_evento } = req.params;
+
+  try {
+    const [eventoRes, iscrittiRes] = await Promise.all([
+      pool.query('SELECT * FROM evento WHERE id_evento = $1', [id_evento]),
+      pool.query(
+        `SELECT c.*
+         FROM cliente_evento ce
+         JOIN cliente c ON ce.id_cliente = c.id_cliente
+         WHERE ce.id_evento = $1`,
+        [id_evento]
+      )
+    ]);
+
+    const evento = eventoRes.rows[0];
+    const iscritti = iscrittiRes.rows;
+
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet('Iscritti Evento');
+
+    // ✅ Titolo Evento
+    sheet.addRow([`Iscritti all'evento: ${evento.titolo}`]).font = { bold: true, size: 14 };
+    sheet.addRow([`Data inizio: ${evento.data_inizio?.toISOString().split('T')[0] || ''}`]);
+    sheet.addRow([`Luogo: ${evento.luogo || ''}`]);
+    sheet.addRow([]); // Riga vuota
+
+    // ✅ Intestazioni con stile
+    const headerRow = sheet.addRow([
+      'Nome', 'Cognome / Rag. Soc.', 'Email', 'Cellulare', 'Cod. Fiscale / P.IVA'
+    ]);
+
+    headerRow.font = { bold: true };
+    headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
+    headerRow.eachCell((cell) => {
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFDDEEFF' }
+      };
+      cell.border = {
+        top: { style: 'thin' },
+        bottom: { style: 'thin' },
+        left: { style: 'thin' },
+        right: { style: 'thin' }
+      };
+    });
+
+    // ✅ Dati iscritti
+    iscritti.forEach(cliente => {
+      sheet.addRow([
+        cliente.nome,
+        cliente.cognome_rag_soc,
+        cliente.email,
+        cliente.cellulare,
+        cliente.cf_piva
+      ]);
+    });
+
+    // ✅ Imposta larghezza automatica
+    sheet.columns.forEach((column) => {
+      let maxLength = 10;
+      column.eachCell({ includeEmpty: true }, (cell) => {
+        const value = cell.value ? cell.value.toString() : '';
+        maxLength = Math.max(maxLength, value.length);
+      });
+      column.width = maxLength + 2;
+    });
+
+    // ✅ Applica filtro alle intestazioni
+    sheet.autoFilter = {
+      from: {
+        row: headerRow.number,
+        column: 1
+      },
+      to: {
+        row: headerRow.number,
+        column: 5
+      }
+    };
+
+    // ✅ Header per download
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="iscritti_evento_${id_evento}.xlsx"`);
+
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (err) {
+    console.error('❌ Errore generazione Excel:', err);
+    res.status(500).send('Errore generazione file Excel');
+  }
+}
+

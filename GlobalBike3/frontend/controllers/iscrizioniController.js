@@ -1,6 +1,62 @@
 
 import fetch from 'node-fetch';
 
+
+export async function esportaIscrittiEvento(req, res) {
+  const { id_evento } = req.params;
+
+  try {
+    // Recupera evento e iscritti
+    const [eventoRes, iscrittiRes] = await Promise.all([
+      pool.query('SELECT * FROM evento WHERE id_evento = $1', [id_evento]),
+      pool.query(
+        `SELECT c.*
+         FROM cliente_evento ce
+         JOIN cliente c ON ce.id_cliente = c.id_cliente
+         WHERE ce.id_evento = $1`,
+        [id_evento]
+      )
+    ]);
+
+    const evento = eventoRes.rows[0];
+    const iscritti = iscrittiRes.rows;
+
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet('Iscritti Evento');
+
+    // Dati evento
+    sheet.addRow(['Evento:', evento.titolo]);
+    sheet.addRow(['Data:', evento.data_inizio?.toISOString().split('T')[0]]);
+    sheet.addRow(['Luogo:', evento.luogo]);
+    sheet.addRow([]); // Riga vuota
+
+    // Intestazioni
+    sheet.addRow(['Nome', 'Cognome/Rag. Soc.', 'Email', 'Cellulare', 'Cod. Fiscale / P.IVA']);
+
+    // Dati iscritti
+    iscritti.forEach(cliente => {
+      sheet.addRow([
+        cliente.nome,
+        cliente.cognome_rag_soc,
+        cliente.email,
+        cliente.cellulare,
+        cliente.cf_piva
+      ]);
+    });
+
+    // Imposta header per download
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="iscritti_evento_${id_evento}.xlsx"`);
+
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (err) {
+    console.error("❌ Errore generazione Excel:", err);
+    res.status(500).send("Errore generazione file Excel");
+  }
+}
+
+
 // ✅ Mostra il form principale con eventuale evento selezionato e clienti trovati
 export const mostraFormIscrizione = async (req, res) => {
   try {
@@ -108,6 +164,27 @@ export const mostraIscrittiEvento = async (req, res) => {
   } catch (err) {
     console.error("❌ Errore caricamento iscritti evento:", err);
     res.status(500).send("Errore caricamento dati evento/iscritti");
+  }
+};
+
+export const exportExcelIscrittiEvento = async (req, res) => {
+  const { id_evento } = req.params;
+
+  try {
+    const fileRes = await fetch(`http://localhost:3000/iscrizioni/evento/${id_evento}/export`);
+
+    if (!fileRes.ok) {
+      throw new Error(`Errore download: ${fileRes.status}`);
+    }
+
+    // Passa il file al browser
+    res.setHeader('Content-Disposition', fileRes.headers.get('content-disposition'));
+    res.setHeader('Content-Type', fileRes.headers.get('content-type'));
+
+    fileRes.body.pipe(res);
+  } catch (err) {
+    console.error('❌ Errore download Excel:', err);
+    res.status(500).send("Errore nel download del file Excel");
   }
 };
 

@@ -4,6 +4,10 @@
   <div class="card shadow-sm">
     <div class="card-body">
       <h3 class="mb-3">Iscritti all’evento: <%= evento.titolo %></h3>
+      <a href="/iscrizioni/evento/<%= evento.id_evento %>/export" class="btn btn-success mb-3">
+      <i class="bi bi-file-earmark-excel"></i> Esporta Excel
+      </a>
+
 
       <% if (successo) { %>
         <div class="alert alert-success"><%= successo %></div>
