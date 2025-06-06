@@ -50,10 +50,9 @@ export const ricercaClienti = async (req, res) => {
   }
 };
 
-// ✅ Salva l'iscrizione al backend
 export const salvaIscrizione = async (req, res) => {
   try {
-    const response = await fetch('http://localhost:3000/iscrizioni', {
+    const response = await fetch('http://localhost:3000/iscrizioni/iscrivi', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -62,14 +61,53 @@ export const salvaIscrizione = async (req, res) => {
       })
     });
 
-    if (response.ok) {
-      res.redirect('/iscrizioni?successo=Iscrizione completata con successo');
+    const contentType = response.headers.get('content-type');
+
+    if (contentType && contentType.includes('application/json')) {
+      const data = await response.json();
+
+      if (response.status === 201) {
+        // ✅ Redirect alla pagina degli iscritti all'evento
+        return res.redirect(`/iscrizioni/evento/${req.body.id_evento}/iscritti?successo=` + encodeURIComponent(data.messaggio));
+      } else if (response.status === 409) {
+        return res.redirect('/iscrizioni?erroreEvento=' + encodeURIComponent(data.messaggio));
+      } else {
+        return res.redirect('/iscrizioni?erroreEvento=' + encodeURIComponent(data.errore || 'Errore generico'));
+      }
     } else {
-      const errData = await response.json();
-      res.redirect('/iscrizioni?erroreEvento=' + encodeURIComponent(errData.messaggio || 'Errore nell’iscrizione'));
+      // 🔴 Risposta non JSON: stampa e mostra testo
+      const text = await response.text();
+      console.error('📄 Risposta non-JSON dal backend:', text);
+      return res.redirect('/iscrizioni?erroreEvento=' + encodeURIComponent('Risposta non valida dal server'));
     }
   } catch (err) {
     console.error('❌ Errore salva iscrizione:', err);
     res.redirect('/iscrizioni?erroreEvento=Errore comunicazione server');
   }
 };
+
+
+export const mostraIscrittiEvento = async (req, res) => {
+  const { id_evento } = req.params;
+
+  try {
+    const [eventoRes, iscrittiRes] = await Promise.all([
+      fetch(`http://localhost:3000/evento/${id_evento}`),
+      fetch(`http://localhost:3000/iscrizioni/evento/${id_evento}/clienti`)
+    ]);
+
+    const evento = await eventoRes.json();
+    const iscritti = await iscrittiRes.json();
+
+    res.render('risultati_iscritti_eventi', {
+      evento,
+      iscritti,
+      successo: req.query.successo || null, // ✅ questo risolve l'errore
+      errore: req.query.errore || null      // opzionale, utile in caso di errori
+    });
+  } catch (err) {
+    console.error("❌ Errore caricamento iscritti evento:", err);
+    res.status(500).send("Errore caricamento dati evento/iscritti");
+  }
+};
+

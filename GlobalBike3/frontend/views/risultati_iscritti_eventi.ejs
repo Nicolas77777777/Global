@@ -1,0 +1,50 @@
+<%- include('partials/header', { titolo: 'Iscritti all\'Evento' }) %>
+
+<div class="container py-4">
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <h3 class="mb-3">Iscritti all’evento: <%= evento.titolo %></h3>
+
+      <% if (successo) { %>
+        <div class="alert alert-success"><%= successo %></div>
+      <% } %>
+
+      <% if (iscritti && iscritti.length > 0) { %>
+        <table class="table table-bordered table-hover mt-3">
+          <thead class="table-dark">
+            <tr>
+              <th>Nome</th>
+              <th>Cognome / Rag. Soc.</th>
+              <th>Email</th>
+              <th>Cellulare</th>
+              <th>Cod. Fiscale / P.IVA</th>
+              <th>Azioni</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% iscritti.forEach(function(cliente) { %>
+              <tr>
+                <td><%= cliente.nome %></td>
+                <td><%= cliente.cognome_rag_soc %></td>
+                <td><%= cliente.email %></td>
+                <td><%= cliente.cellulare %></td>
+                <td><%= cliente.cf_piva %></td>
+                <td>
+                  <form method="POST" action="/iscrizioni/rimuovi">
+                    <input type="hidden" name="id_cliente" value="<%= cliente.id_cliente %>">
+                    <input type="hidden" name="id_evento" value="<%= evento.id_evento %>">
+                    <button type="submit" class="btn btn-sm btn-danger">Rimuovi</button>
+                  </form>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      <% } else { %>
+        <p class="text-muted">Nessun cliente iscritto a questo evento.</p>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

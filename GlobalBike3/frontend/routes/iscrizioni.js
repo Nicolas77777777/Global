@@ -4,7 +4,8 @@ import {
   mostraFormIscrizione,
   selezionaEvento,
   ricercaClienti,
-  salvaIscrizione
+  salvaIscrizione,
+  mostraIscrittiEvento
 } from '../controllers/iscrizioniController.js';
 
 const router = express.Router();
@@ -18,7 +19,11 @@ router.post('/seleziona-evento', selezionaEvento);
 // ✅ Ricerca clienti in base ai campi del form
 router.get('/ricerca-cliente', ricercaClienti);
 
+
+
 // ✅ Salva l'iscrizione (cliente → evento)
 router.post('/', salvaIscrizione);
+
+router.get('/evento/:id_evento/iscritti', mostraIscrittiEvento);
 
 export default router;
