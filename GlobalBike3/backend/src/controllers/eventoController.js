@@ -43,7 +43,7 @@ export async function creaEvento(req, res) {
 
 // ✅ RICERCA eventi (opzionale: per titolo, categoria, date)
 export async function ricercaEventi(req, res) {
-  const { titolo, categoria } = req.query;
+  const { titolo, categoria, data_inizio, data_fine } = req.query;
   const condizioni = [];
   const valori = [];
 
@@ -63,6 +63,16 @@ export async function ricercaEventi(req, res) {
     valori.push(categoria);
   }
 
+  if (data_inizio) {
+    condizioni.push(`e.data_inizio >= $${valori.length + 1}`);
+    valori.push(data_inizio);
+  }
+
+  if (data_fine) {
+    condizioni.push(`e.data_fine <= $${valori.length + 1}`);
+    valori.push(data_fine);
+  }
+
   if (condizioni.length > 0) {
     query += ` WHERE ` + condizioni.join(' AND ');
   }
@@ -77,6 +87,7 @@ export async function ricercaEventi(req, res) {
     res.status(500).send("Errore del server");
   }
 }
+
 
 // ✅ MOSTRA un evento singolo per ID (con JOIN su tipologiche)
 export async function getEventoById(req, res) {

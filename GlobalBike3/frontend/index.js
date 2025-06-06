@@ -6,6 +6,9 @@ import authRoutes from './routes/auth.js';
 import clientiRoutes from './routes/clienti.js';
 import tipologicheRoutes from './routes/tipologiche.js'; // ✅ Aggiunto
 import eventiRoutes from './routes/eventi.js';
+import iscrizioniRoutes from './routes/iscrizioni.js';
+
+
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -21,6 +24,7 @@ server.use(express.urlencoded({ extended: true }));
 server.use(express.json());
 server.use(express.static(path.join(__dirname, 'public')));
 
+
 // Middleware per il titolo predefinito
 server.use((req, res, next) => {
   res.locals.titolo = 'Bike and Hike';
@@ -32,6 +36,7 @@ server.use('/', authRoutes);
 server.use('/clienti', clientiRoutes);
 server.use('/tipologiche', tipologicheRoutes); // ✅ Aggiunto
 server.use('/eventi', eventiRoutes);
+server.use('/iscrizioni', iscrizioniRoutes);
 
 // ✅ Pagina principale
 server.get('/home', (req, res) => {

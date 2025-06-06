@@ -1,9 +1,17 @@
-<%- include('../partials/header', { titolo: 'Modifica Evento' }) %>
+
+<%- include('partials/header', { titolo: 'Modifica Evento' }) %>
 
 <div class="container mt-5">
   <div class="card shadow-sm">
     <div class="card-body">
-      <h3 class="mb-4">Modifica Evento</h3>
+      <div class="d-flex align-items-center mb-4">
+        <img src="/img/logo.png" alt="Logo" class="logo me-3">
+        <h3 class="mb-0">Modifica Evento</h3>
+      </div>
+
+      <% if (successo) { %>
+        <div class="alert alert-success"><%= successo %></div>
+      <% } %>
 
       <% if (errore) { %>
         <div class="alert alert-danger"><%= errore %></div>
@@ -87,4 +95,4 @@
   </div>
 </div>
 
-<%- include('../partials/footer') %>
+<%- include('partials/footer') %>
