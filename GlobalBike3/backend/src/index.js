@@ -2,6 +2,9 @@
 // importiamo le librerie
 import express from 'express';
 import dotenv from 'dotenv';
+import cors from 'cors';
+
+
 
 //Importiamo le rotte dei vari moduli
 import clienteRoutes from './routes/clienteRoutes.js';
@@ -21,6 +24,9 @@ dotenv.config();
 const server = express();
 const port = process.env.PORT || 3000;
 
+server.use(cors());
+
+
 // Middleware per parsing
 server.use(express.json());
 server.use(express.urlencoded({ extended: true }));
@@ -32,6 +38,10 @@ server.use('/cliente', clienteRoutes);
 server.use('/tipologiche',tipologicheRoutes);
 server.use('/evento', eventoRoutes); // pronto per estensione
 server.use('/iscrizioni', clienteEventoRoutes);
+server.use('/download', express.static(path.join(__dirname, '../export')));
+
+
+
 
 // Avvio server
 server.listen(port, () => {

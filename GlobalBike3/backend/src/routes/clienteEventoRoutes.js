@@ -3,7 +3,8 @@ import {
   iscriviCliente,
   clientiPerEvento,
   eventiPerCliente,
-  rimuoviIscrizione
+  rimuoviIscrizione,
+  esportaIscrittiEvento
 } from '../controllers/clienteEventoController.js';
 
 const router = express.Router();
@@ -19,5 +20,7 @@ router.get('/cliente/:id_cliente/eventi', eventiPerCliente);
 
 // 🔽 DELETE: Rimuovi iscrizione
 router.delete('/rimuovi', rimuoviIscrizione);
+
+router.get('/evento/:id_evento/export', esportaIscrittiEvento);
 
 export default router;

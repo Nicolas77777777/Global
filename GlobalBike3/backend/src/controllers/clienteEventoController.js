@@ -1,5 +1,9 @@
 import pool from '../db/db.js';
 import ExcelJS from 'exceljs';
+import fs from 'fs';
+import path from 'path';
+import PDFDocument from 'pdfkit';
+
 
 // ✅ Aggiungi un cliente a un evento
 export async function iscriviCliente(req, res) {
@@ -90,96 +94,109 @@ export async function rimuoviIscrizione(req, res) {
 }
 
 
+
+
 export async function esportaIscrittiEvento(req, res) {
   const { id_evento } = req.params;
 
   try {
     const [eventoRes, iscrittiRes] = await Promise.all([
       pool.query('SELECT * FROM evento WHERE id_evento = $1', [id_evento]),
-      pool.query(
-        `SELECT c.*
-         FROM cliente_evento ce
-         JOIN cliente c ON ce.id_cliente = c.id_cliente
-         WHERE ce.id_evento = $1`,
-        [id_evento]
-      )
+      pool.query(`
+        SELECT c.*
+        FROM cliente_evento ce
+        JOIN cliente c ON ce.id_cliente = c.id_cliente
+        WHERE ce.id_evento = $1
+      `, [id_evento])
     ]);
 
     const evento = eventoRes.rows[0];
     const iscritti = iscrittiRes.rows;
 
     const workbook = new ExcelJS.Workbook();
-    const sheet = workbook.addWorksheet('Iscritti Evento');
+    const sheet = workbook.addWorksheet('Iscritti');
 
-    // ✅ Titolo Evento
     sheet.addRow([`Iscritti all'evento: ${evento.titolo}`]).font = { bold: true, size: 14 };
-    sheet.addRow([`Data inizio: ${evento.data_inizio?.toISOString().split('T')[0] || ''}`]);
-    sheet.addRow([`Luogo: ${evento.luogo || ''}`]);
-    sheet.addRow([]); // Riga vuota
-
-    // ✅ Intestazioni con stile
-    const headerRow = sheet.addRow([
-      'Nome', 'Cognome / Rag. Soc.', 'Email', 'Cellulare', 'Cod. Fiscale / P.IVA'
-    ]);
-
+    sheet.addRow([]);
+    const headerRow = sheet.addRow(['Nome', 'Cognome / Rag. Soc.', 'Email', 'Cellulare', 'Cod. Fiscale / P.IVA']);
     headerRow.font = { bold: true };
-    headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
-    headerRow.eachCell((cell) => {
-      cell.fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: 'FFDDEEFF' }
-      };
-      cell.border = {
-        top: { style: 'thin' },
-        bottom: { style: 'thin' },
-        left: { style: 'thin' },
-        right: { style: 'thin' }
-      };
+
+    iscritti.forEach(c => {
+      sheet.addRow([c.nome, c.cognome_rag_soc, c.email, c.cellulare, c.cf_piva]);
     });
 
-    // ✅ Dati iscritti
-    iscritti.forEach(cliente => {
-      sheet.addRow([
-        cliente.nome,
-        cliente.cognome_rag_soc,
-        cliente.email,
-        cliente.cellulare,
-        cliente.cf_piva
-      ]);
-    });
+    const exportPath = path.join(process.cwd(), 'export');
+    if (!fs.existsSync(exportPath)) fs.mkdirSync(exportPath);
+    const filePath = path.join(exportPath, `iscritti_evento_${id_evento}.xlsx`);
 
-    // ✅ Imposta larghezza automatica
-    sheet.columns.forEach((column) => {
-      let maxLength = 10;
-      column.eachCell({ includeEmpty: true }, (cell) => {
-        const value = cell.value ? cell.value.toString() : '';
-        maxLength = Math.max(maxLength, value.length);
-      });
-      column.width = maxLength + 2;
-    });
+    await workbook.xlsx.writeFile(filePath);
 
-    // ✅ Applica filtro alle intestazioni
-    sheet.autoFilter = {
-      from: {
-        row: headerRow.number,
-        column: 1
-      },
-      to: {
-        row: headerRow.number,
-        column: 5
-      }
-    };
-
-    // ✅ Header per download
-    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    res.setHeader('Content-Disposition', `attachment; filename="iscritti_evento_${id_evento}.xlsx"`);
-
-    await workbook.xlsx.write(res);
-    res.end();
+    console.log("✅ File Excel generato:", filePath);
+    res.status(200).json({ path: `/download/${path.basename(filePath)}` });
   } catch (err) {
     console.error('❌ Errore generazione Excel:', err);
-    res.status(500).send('Errore generazione file Excel');
+    res.status(500).json({ errore: 'Errore nel salvataggio del file Excel' });
   }
 }
+import PDFDocument from 'pdfkit';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { pool } from '../db.js';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+export async function esportaIscrittiEventoPDF(req, res) {
+  const { id_evento } = req.params;
+
+  try {
+    // Recupera evento e iscritti
+    const eventoQuery = await pool.query(
+      `SELECT e.titolo, e.data_inizio, e.data_fine, t.descrizione AS categoria
+       FROM evento e
+       JOIN tipologiche t ON e.categoria = t.id_tipologica
+       WHERE e.id_evento = $1`,
+      [id_evento]
+    );
+
+    const iscrittiQuery = await pool.query(
+      `SELECT c.nome, c.cognome_rag_soc, c.email, c.cellulare, c.cf_piva
+       FROM cliente_evento ce
+       JOIN cliente c ON ce.id_cliente = c.id_cliente
+       WHERE ce.id_evento = $1`,
+      [id_evento]
+    );
+
+    const evento = eventoQuery.rows[0];
+    const iscritti = iscrittiQuery.rows;
+
+    // Crea documento PDF
+    const doc = new PDFDocument();
+    const exportPath = path.join(__dirname, '../export');
+    const filename = `iscritti_evento_${id_evento}.pdf`;
+    const filePath = path.join(exportPath, filename);
+
+    doc.pipe(fs.createWriteStream(filePath));
+
+    doc.fontSize(18).text(`Iscritti all'evento: ${evento.titolo}`, { underline: true });
+    doc.moveDown();
+    doc.fontSize(12).text(`Categoria: ${evento.categoria}`);
+    doc.text(`Dal ${evento.data_inizio} al ${evento.data_fine}`);
+    doc.moveDown();
+
+    doc.fontSize(14).text('Elenco Iscritti:', { underline: true });
+    doc.moveDown();
+
+    iscritti.forEach((c, i) => {
+      doc.fontSize(12).text(`${i + 1}. ${c.nome} ${c.cognome_rag_soc} - ${c.email} - ${c.cellulare} - ${c.cf_piva}`);
+    });
+
+    doc.end();
+
+    res.status(200).json({ messaggio: 'PDF generato con successo', filename });
+  } catch (err) {
+    console.error('❌ Errore generazione PDF:', err);
+    res.status(500).json({ errore: 'Errore generazione PDF' });
+  }
+}

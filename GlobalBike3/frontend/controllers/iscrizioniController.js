@@ -167,24 +167,25 @@ export const mostraIscrittiEvento = async (req, res) => {
   }
 };
 
+// ✅ Controller frontend per export Excel
 export const exportExcelIscrittiEvento = async (req, res) => {
   const { id_evento } = req.params;
 
   try {
-    const fileRes = await fetch(`http://localhost:3000/iscrizioni/evento/${id_evento}/export`);
+    const res = await fetch(`http://localhost:3000/iscrizioni/evento/${idEvento}/export`);
 
-    if (!fileRes.ok) {
-      throw new Error(`Errore download: ${fileRes.status}`);
+
+    if (!response.ok) {
+      throw new Error('Errore nel download del file Excel');
     }
 
-    // Passa il file al browser
-    res.setHeader('Content-Disposition', fileRes.headers.get('content-disposition'));
-    res.setHeader('Content-Type', fileRes.headers.get('content-type'));
+    const data = await response.json();
 
-    fileRes.body.pipe(res);
+    // 🔁 Reindirizza direttamente al file sul backend
+    res.redirect(`http://localhost:3000${data.path}`);
   } catch (err) {
-    console.error('❌ Errore download Excel:', err);
-    res.status(500).send("Errore nel download del file Excel");
+    console.error('❌ Errore export Excel frontend:', err);
+    res.status(500).send('Errore durante il download del file Excel');
   }
 };
 
