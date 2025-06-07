@@ -25,6 +25,14 @@
         <i class="bi bi-file-earmark-excel"></i> Esporta Excel
       </button>
 
+      <form method="GET" action="/iscrizioni/evento/<%= evento.id_evento %>/export-pdf" target="_blank"
+  onsubmit="setTimeout(() => window.location.href = '/iscrizioni/evento/<%= evento.id_evento %>/iscritti', 1000);">
+  <button type="submit" class="btn btn-outline-danger mb-3 ms-2">
+    <i class="bi bi-filetype-pdf"></i> Esporta PDF
+  </button>
+</form>
+
+
       <script>
         document.getElementById('btnExport').addEventListener('click', async () => {
           const idEvento = "<%= evento.id_evento %>";

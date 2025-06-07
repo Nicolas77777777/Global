@@ -1,8 +1,13 @@
+import { fileURLToPath } from 'url';
+
 import pool from '../db/db.js';
 import ExcelJS from 'exceljs';
 import fs from 'fs';
 import path from 'path';
 import PDFDocument from 'pdfkit';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 
 // ✅ Aggiungi un cliente a un evento
@@ -93,9 +98,6 @@ export async function rimuoviIscrizione(req, res) {
   }
 }
 
-
-
-
 export async function esportaIscrittiEvento(req, res) {
   const { id_evento } = req.params;
 
@@ -138,14 +140,6 @@ export async function esportaIscrittiEvento(req, res) {
     res.status(500).json({ errore: 'Errore nel salvataggio del file Excel' });
   }
 }
-import PDFDocument from 'pdfkit';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { pool } from '../db.js';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 export async function esportaIscrittiEventoPDF(req, res) {
   const { id_evento } = req.params;
@@ -173,7 +167,7 @@ export async function esportaIscrittiEventoPDF(req, res) {
 
     // Crea documento PDF
     const doc = new PDFDocument();
-    const exportPath = path.join(__dirname, '../export');
+    const exportPath = path.join(__dirname, '../../export');
     const filename = `iscritti_evento_${id_evento}.pdf`;
     const filePath = path.join(exportPath, filename);
 

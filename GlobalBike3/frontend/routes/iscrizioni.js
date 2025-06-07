@@ -6,7 +6,8 @@ import {
   ricercaClienti,
   salvaIscrizione,
   mostraIscrittiEvento,
-  exportExcelIscrittiEvento
+  exportExcelIscrittiEvento,
+  exportPdfIscrittiEvento // ✅ aggiunto per PDF
 } from '../controllers/iscrizioniController.js';
 
 const router = express.Router();
@@ -27,5 +28,8 @@ router.post('/', salvaIscrizione);
 router.get('/evento/:id_evento/iscritti', mostraIscrittiEvento);
 
 router.get('/evento/:id_evento/export', exportExcelIscrittiEvento);
+
+// ✅ Esporta PDF
+router.get('/evento/:id_evento/export-pdf', exportPdfIscrittiEvento);
 
 export default router;

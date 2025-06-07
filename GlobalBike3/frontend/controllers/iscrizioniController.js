@@ -189,3 +189,26 @@ export const exportExcelIscrittiEvento = async (req, res) => {
   }
 };
 
+
+// ✅ Esporta in PDF gli iscritti a un evento
+export const exportPdfIscrittiEvento = async (req, res) => {
+  const { id_evento } = req.params;
+
+  try {
+    const response = await fetch(`http://localhost:3000/iscrizioni/evento/${id_evento}/export-pdf`);
+    
+    if (!response.ok) {
+      throw new Error(`Errore download: ${response.status}`);
+    }
+
+    // Imposta header per forzare il download
+    res.setHeader('Content-Disposition', `attachment; filename="iscritti_evento_${id_evento}.pdf"`);
+    res.setHeader('Content-Type', 'application/pdf');
+
+    // Piping dello stream PDF al client
+    response.body.pipe(res);
+  } catch (err) {
+    console.error('❌ Errore download PDF:', err);
+    res.status(500).send('Errore durante il download del file PDF');
+  }
+};
