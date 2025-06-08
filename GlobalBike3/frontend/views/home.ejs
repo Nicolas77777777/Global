@@ -3,12 +3,12 @@
 <div class="container-fluid">
   <div class="row">
     <!-- Sidebar -->
-    <div class="col-md-3 col-lg-2 p-0 bg-light min-vh-100">
+    <div class="col-xl-3 col-lg-4 col-md-5 p-0 bg-light min-vh-100">
       <%- include('partials/sidebar') %>
     </div>
 
     <!-- Contenuto principale -->
-    <main class="col-md-9 col-lg-10 ms-sm-auto px-md-4 mt-4">
+    <main class="col-xl-9 col-lg-8 col-md-7 px-4 mt-4">
       <div class="card shadow-sm">
         <div class="card-body">
           <div class="d-flex align-items-center mb-4">
@@ -17,12 +17,57 @@
           </div>
           <p class="lead mt-2">
             Benvenuto nella dashboard dell'associazione!
-            Da qui puoi gestire clienti, prodotti e altre funzionalità dell’associazione Bike and Hike.
+            Da qui puoi gestire clienti, prodotti e altre funzionalità dell'associazione Bike and Hike.
           </p>
         </div>
       </div>
     </main>
   </div>
 </div>
+
+<style>
+/* Correzioni per il layout responsive */
+@media (min-width: 768px) {
+  .row {
+    margin-left: 0;
+    margin-right: 0;
+  }
+  
+  .col-xl-3, .col-lg-4, .col-md-5 {
+    padding-left: 0;
+    padding-right: 0;
+  }
+  
+  .col-xl-9, .col-lg-8, .col-md-7 {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+/* Assicura che la sidebar non vada in overflow */
+@media (max-width: 767px) {
+  .col-xl-3, .col-lg-4, .col-md-5 {
+    position: static !important;
+    width: 100% !important;
+    min-height: auto !important;
+  }
+  
+  .modern-sidebar {
+    position: static !important;
+    margin-bottom: 1rem;
+  }
+}
+
+/* Correzione per evitare sovrapposizioni */
+.modern-sidebar {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+main {
+  min-height: calc(100vh - 80px);
+  padding-top: 1rem;
+}
+</style>
 
 <%- include('partials/footer') %>

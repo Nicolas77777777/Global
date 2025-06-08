@@ -33,8 +33,9 @@
             height: fit-content;
             position: sticky;
             top: 20px;
-            max-width: 320px;
+            max-width: 100%;
             backdrop-filter: blur(10px);
+            overflow-x: hidden;
         }
 
         /* Search moderna */
@@ -187,6 +188,7 @@
             transition: all 0.3s ease;
             font-size: 0.9rem;
             margin: 0.2rem 0;
+            position: relative;
         }
 
         .sidebar-sublink:hover {
@@ -220,10 +222,6 @@
         .sidebar-sublink:hover::before,
         .sidebar-sublink.active::before {
             transform: scaleY(1);
-        }
-
-        .sidebar-sublink {
-            position: relative;
         }
 
         .sidebar-sublink.highlight {
@@ -274,17 +272,78 @@
             margin-right: 8px;
         }
 
-        /* Responsive */
-        @media (max-width: 768px) {
+        /* Layout responsive migliorato */
+        @media (min-width: 768px) {
             .modern-sidebar {
-                margin: 0 -20px;
-                border-radius: 0;
+                max-width: 300px;
+                position: sticky;
+                top: 20px;
+            }
+        }
+
+        @media (max-width: 767px) {
+            body {
+                padding: 10px;
+            }
+            
+            .modern-sidebar {
+                margin: 0;
+                border-radius: 15px;
                 position: static;
+                max-width: 100%;
+                margin-bottom: 1rem;
             }
             
             .sidebar-link:hover,
             .sidebar-sublink:hover {
                 transform: none;
+            }
+        }
+
+        /* Correzioni per il contenitore principale */
+        @media (min-width: 992px) {
+            .container-fluid .row {
+                margin-left: 0;
+                margin-right: 0;
+            }
+            
+            .container-fluid .col-lg-3 {
+                max-width: 25%;
+                flex: 0 0 25%;
+            }
+            
+            .container-fluid .col-lg-9 {
+                max-width: 75%;
+                flex: 0 0 75%;
+                padding-left: 1rem;
+            }
+        }
+
+        @media (min-width: 1200px) {
+            .container-fluid .col-xl-3 {
+                max-width: 20%;
+                flex: 0 0 20%;
+            }
+            
+            .container-fluid .col-xl-9 {
+                max-width: 80%;
+                flex: 0 0 80%;
+            }
+        }
+
+        /* Sidebar compatta per schermi medi */
+        @media (min-width: 768px) and (max-width: 991px) {
+            .modern-sidebar {
+                max-width: 280px;
+            }
+            
+            .sidebar-link, .sidebar-sublink {
+                font-size: 0.9rem;
+                padding: 8px 12px;
+            }
+            
+            .menu-title {
+                font-size: 0.75rem;
             }
         }
 
@@ -321,6 +380,22 @@
 
         .modern-sidebar::-webkit-scrollbar-thumb:hover {
             background: var(--primary-color);
+        }
+
+        /* Assicura che il contenuto non vada sotto la sidebar */
+        .main-content {
+            min-height: calc(100vh - 80px);
+            padding: 1rem;
+        }
+
+        /* Previene problemi di overflow */
+        .row {
+            overflow-x: hidden;
+        }
+
+        .col-lg-3, .col-lg-9, .col-xl-3, .col-xl-9 {
+            padding-left: 0.75rem;
+            padding-right: 0.75rem;
         }
     </style>
 </head>
