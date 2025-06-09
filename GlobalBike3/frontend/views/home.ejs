@@ -1,14 +1,14 @@
 <%- include('partials/header', { titolo: 'Home - Bike and Hike' }) %>
 
 <div class="container-fluid">
-  <div class="row">
+  <div class="row gx-0">
     <!-- Sidebar -->
-    <div class="col-xl-3 col-lg-4 col-md-5 p-0 bg-light min-vh-100">
+    <div class="col-xl-3 col-lg-4 col-md-5">
       <%- include('partials/sidebar') %>
     </div>
 
     <!-- Contenuto principale -->
-    <main class="col-xl-9 col-lg-8 col-md-7 px-4 mt-4">
+    <div class="col-xl-9 col-lg-8 col-md-7 p-4">
       <div class="card shadow-sm">
         <div class="card-body">
           <div class="d-flex align-items-center mb-4">
@@ -17,57 +17,59 @@
           </div>
           <p class="lead mt-2">
             Benvenuto nella dashboard dell'associazione!
-            Da qui puoi gestire clienti, prodotti e altre funzionalità dell'associazione Bike and Hike.
+            Da qui puoi gestire clienti, eventi e configurazioni.
           </p>
+
+          <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3 mt-3">
+            <!-- Clienti -->
+            <div class="col">
+              <div class="card border-0 bg-primary text-white h-100">
+                <div class="card-body text-center">
+                  <i class="bi bi-people fs-1 mb-2"></i>
+                  <h5>Clienti</h5>
+                  <div class="d-grid gap-1">
+                    <a href="/clienti/nuovo" class="btn btn-light btn-sm">Nuovo</a>
+                    <a href="/clienti/form" class="btn btn-light btn-sm">Modifica</a>
+                    <a href="/clienti/lista" class="btn btn-light btn-sm">Lista</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Eventi -->
+            <div class="col">
+              <div class="card border-0 bg-warning text-white h-100">
+                <div class="card-body text-center">
+                  <i class="bi bi-calendar-event fs-1 mb-2"></i>
+                  <h5>Eventi</h5>
+                  <div class="d-grid gap-1">
+                    <a href="/eventi/nuovo" class="btn btn-light btn-sm">Nuovo</a>
+                    <a href="/eventi/ricerca" class="btn btn-light btn-sm">Modifica</a>
+                    <a href="/iscrizioni" class="btn btn-light btn-sm">Iscrizioni</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tipologiche -->
+            <div class="col">
+              <div class="card border-0 bg-info text-white h-100">
+                <div class="card-body text-center">
+                  <i class="bi bi-gear fs-1 mb-2"></i>
+                  <h5>Tipologiche</h5>
+                  <div class="d-grid gap-1">
+                    <a href="/tipologiche/nuovo" class="btn btn-light btn-sm">Inserimento</a>
+                    <a href="/tipologiche/ricerca" class="btn btn-light btn-sm">Modifica</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
-    </main>
+    </div>
   </div>
 </div>
-
-<style>
-/* Correzioni per il layout responsive */
-@media (min-width: 768px) {
-  .row {
-    margin-left: 0;
-    margin-right: 0;
-  }
-  
-  .col-xl-3, .col-lg-4, .col-md-5 {
-    padding-left: 0;
-    padding-right: 0;
-  }
-  
-  .col-xl-9, .col-lg-8, .col-md-7 {
-    padding-left: 1.5rem;
-    padding-right: 1.5rem;
-  }
-}
-
-/* Assicura che la sidebar non vada in overflow */
-@media (max-width: 767px) {
-  .col-xl-3, .col-lg-4, .col-md-5 {
-    position: static !important;
-    width: 100% !important;
-    min-height: auto !important;
-  }
-  
-  .modern-sidebar {
-    position: static !important;
-    margin-bottom: 1rem;
-  }
-}
-
-/* Correzione per evitare sovrapposizioni */
-.modern-sidebar {
-  max-width: 100%;
-  overflow-x: hidden;
-}
-
-main {
-  min-height: calc(100vh - 80px);
-  padding-top: 1rem;
-}
-</style>
 
 <%- include('partials/footer') %>
