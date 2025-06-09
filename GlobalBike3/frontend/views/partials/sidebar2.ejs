@@ -26,6 +26,11 @@
         }
 
         .modern-sidebar {
+    min-width: 240px;
+    width: 100%;
+    max-width: 300px;
+    word-wrap: break-word;
+
             background: rgba(255, 255, 255, 0.95);
             border-radius: 20px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.1);
@@ -275,6 +280,11 @@
         /* Layout responsive migliorato */
         @media (min-width: 768px) {
             .modern-sidebar {
+    min-width: 240px;
+    width: 100%;
+    max-width: 300px;
+    word-wrap: break-word;
+
                 max-width: 300px;
                 position: sticky;
                 top: 20px;
@@ -287,6 +297,11 @@
             }
             
             .modern-sidebar {
+    min-width: 240px;
+    width: 100%;
+    max-width: 300px;
+    word-wrap: break-word;
+
                 margin: 0;
                 border-radius: 15px;
                 position: static;
@@ -334,6 +349,11 @@
         /* Sidebar compatta per schermi medi */
         @media (min-width: 768px) and (max-width: 991px) {
             .modern-sidebar {
+    min-width: 240px;
+    width: 100%;
+    max-width: 300px;
+    word-wrap: break-word;
+
                 max-width: 280px;
             }
             
@@ -349,6 +369,11 @@
 
         /* Animazioni aggiuntive */
         .modern-sidebar {
+    min-width: 240px;
+    width: 100%;
+    max-width: 300px;
+    word-wrap: break-word;
+
             animation: slideInLeft 0.5s ease-out;
         }
 
@@ -402,7 +427,7 @@
 <body>
     <div class="container-fluid">
         <div class="row">
-            <div class="col-lg-auto" style="width: 280px; min-width: 260px;">
+            <div class="col-lg-3">
                 <div class="modern-sidebar p-4">
                   
                   <!-- Search moderna -->
@@ -519,25 +544,20 @@
 
                     <!-- Quick Actions -->
                     <div class="quick-actions mt-4">
-                    <div class="menu-title text-uppercase fw-bold mb-3">
-    <i class="bi bi-lightning me-2"></i>Azioni Rapide
-  </div>
-  <div class="quick-action-buttons d-flex flex-column gap-2">
-    <a href="/clienti/nuovo" class="btn btn-quick btn-sm">
-      <i class="bi bi-person-plus me-1"></i>Aggiungi Cliente
-    </a>
-    <a href="/prodotti/nuovo" class="btn btn-quick btn-sm">
-      <i class="bi bi-bicycle me-1"></i>Aggiungi Prodotto
-    </a>
-    <a href="/eventi/nuovo" class="btn btn-quick btn-sm">
-      <i class="bi bi-calendar-plus me-1"></i>Crea Evento
-    </a>
-    <a href="/iscrizioni" class="btn btn-quick btn-sm">
-      <i class="bi bi-check2-circle me-1"></i> Aggiiungi Cliente ad Evento
-    </a>
-  </div>
-</div>
-
+                      <div class="menu-title text-uppercase fw-bold mb-3">
+                        <i class="bi bi-lightning me-2"></i>Azioni Rapide
+                      </div>
+                      <div class="quick-action-buttons">
+                        <a href="/clienti/nuovo" class="btn btn-quick btn-sm mb-2">
+                          <i class="bi bi-person-plus me-1"></i>Aggiungi Cliente
+                        </a>
+                        <a href="/prodotti/nuovo" class="btn btn-quick btn-sm mb-2">
+                          <i class="bi bi-bicycle me-1"></i>Aggiungi Prodotto
+                        </a>
+                        <a href="/eventi/nuovo" class="btn btn-quick btn-sm">
+                          <i class="bi bi-calendar-plus me-1"></i>Crea Evento
+                        </a>
+                      </div>
                     </div>
                   </div>
                 </div>
