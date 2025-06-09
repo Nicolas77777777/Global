@@ -129,3 +129,22 @@ export async function modificaCliente(req, res) {
     res.status(500).send('Errore nel server');
   }
 }
+
+// Elimina cliente
+export async function eliminaCliente(req, res) {
+  const id = req.params.id;
+
+  try {
+    const result = await pool.query('DELETE FROM cliente WHERE id_cliente = $1 RETURNING *;', [id]);
+
+    if (result.rowCount === 0) {
+      return res.status(404).send('Cliente non trovato');
+    }
+
+    res.status(200).json({ messaggio: 'Cliente eliminato con successo' });
+  } catch (err) {
+    console.error('Errore durante l\'eliminazione del cliente:', err);
+    res.status(500).send('Errore nel server');
+  }
+}
+

@@ -5,7 +5,9 @@ import {
   showFormRicerca,
   eseguiRicerca,
   mostraModifica,
-  salvaModifica
+  salvaModifica,
+  eliminaCliente
+
 } from '../controllers/clientiController.js';
 
 const router = express.Router();
@@ -22,5 +24,7 @@ router.get('/risultati', eseguiRicerca);     // âœ… MANTENUTA: Per compatibilitÃ
 // Route per modifica cliente
 router.get('/:id/modifica', mostraModifica);
 router.post('/:id/modifica', salvaModifica);
+
+router.get('/elimina/:id', eliminaCliente); // Elimina
 
 export default router;

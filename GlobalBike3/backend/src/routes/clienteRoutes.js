@@ -3,7 +3,8 @@ import {
   creaCliente,
   ricercaCliente,
   getClienteById,
-  modificaCliente
+  modificaCliente,
+  eliminaCliente
 } from '../controllers/clienteController.js';
 
 const router = express.Router();
@@ -13,6 +14,7 @@ router.get('/ricerca', ricercaCliente);
 router.get('/:id', getClienteById);
 router.get('/:id/modifica', getClienteById);
 router.post('/:id/modifica', modificaCliente);
+router.delete('/clienti/:id', eliminaCliente);
 
 export default router;
 

@@ -119,3 +119,25 @@ export const salvaModifica = async (req, res) => {
     res.status(500).send(`Errore nel salvataggio: ${err.message}`);
   }
 };
+
+// Elimina cliente
+export async function eliminaCliente(req, res) {
+  const { id } = req.params;
+
+  try {
+    const response = await fetch(`http://localhost:8080/clienti/${id}`, {
+      method: 'DELETE'
+    });
+
+    if (response.ok) {
+      res.redirect('/clienti/ricerca');
+    } else {
+      const testo = await response.text();
+      console.error("Errore eliminazione:", testo);
+      res.status(response.status).send("Errore durante l'eliminazione del cliente");
+    }
+  } catch (err) {
+    console.error("Errore connessione:", err);
+    res.status(500).send("Errore interno al server");
+  }
+}
