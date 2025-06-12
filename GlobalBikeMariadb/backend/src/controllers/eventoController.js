@@ -1,183 +1,283 @@
-import pool from '../db/db.js';
+// src/controllers/eventoController.js
+import { pool } from '../db/db.js';
 
-// ✅ CREA un nuovo evento
-export async function creaEvento(req, res) {
-  const {
-    titolo,
-    categoria,
-    data_inizio,
-    data_fine,
-    orario_inizio,
-    orario_fine,
-    luogo,
-    note,
-    prezzo
-  } = req.body;
-
-  // Controllo campi obbligatori
-  if (!titolo || !categoria || !data_inizio || !data_fine) {
-    return res.status(400).json({ errore: "Campi obbligatori mancanti" });
-  }
-
+// Recupera tutti gli eventi con categoria
+export const getEventi = async (req, res) => {
   try {
-    const query = `
-      INSERT INTO evento (
-        titolo, categoria, data_inizio, data_fine,
-        orario_inizio, orario_fine, luogo, note, prezzo
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
-      RETURNING *;
-    `;
-    const valori = [
-      titolo, categoria, data_inizio, data_fine,
-      orario_inizio || null, orario_fine || null,
-      luogo || null, note || null, prezzo || null
-    ];
-
-    const result = await pool.query(query, valori);
-    res.status(201).json({ messaggio: "Evento creato", evento: result.rows[0] });
-  } catch (err) {
-    console.error("Errore creazione evento:", err);
-    res.status(500).send("Errore del server");
+    const [rows] = await pool.query(`
+      SELECT e.*, t.descrizione as categoria_nome 
+      FROM evento e 
+      LEFT JOIN tipologiche t ON e.categoria = t.id_tipologica 
+      ORDER BY e.data_inizio DESC, e.orario_inizio ASC
+    `);
+    res.status(200).json(rows);
+  } catch (error) {
+    console.error('Errore durante il recupero degli eventi:', error);
+    res.status(500).json({ error: 'Errore nel recupero degli eventi' });
   }
-}
+};
 
-// ✅ RICERCA eventi (opzionale: per titolo, categoria, date)
-export async function ricercaEventi(req, res) {
-  const { titolo, categoria, data_inizio, data_fine } = req.query;
-  const condizioni = [];
-  const valori = [];
-
-  let query = `
-    SELECT e.*, t.descrizione AS categoria_descrizione
-    FROM evento e
-    JOIN tipologiche t ON e.categoria = t.id_tipologica
-  `;
-
-  if (titolo) {
-    condizioni.push(`LOWER(e.titolo) LIKE LOWER($${valori.length + 1})`);
-    valori.push(`%${titolo}%`);
-  }
-
-  if (categoria) {
-    condizioni.push(`e.categoria = $${valori.length + 1}`);
-    valori.push(categoria);
-  }
-
-  if (data_inizio) {
-    condizioni.push(`e.data_inizio >= $${valori.length + 1}`);
-    valori.push(data_inizio);
-  }
-
-  if (data_fine) {
-    condizioni.push(`e.data_fine <= $${valori.length + 1}`);
-    valori.push(data_fine);
-  }
-
-  if (condizioni.length > 0) {
-    query += ` WHERE ` + condizioni.join(' AND ');
-  }
-
-  query += ` ORDER BY e.data_inizio DESC`;
-
+// Recupera eventi attivi
+export const getEventiAttivi = async (req, res) => {
   try {
-    const result = await pool.query(query, valori);
-    res.status(200).json(result.rows);
-  } catch (err) {
-    console.error("Errore ricerca eventi:", err);
-    res.status(500).send("Errore del server");
+    const [rows] = await pool.query(`
+      SELECT e.*, t.descrizione as categoria_nome 
+      FROM evento e 
+      LEFT JOIN tipologiche t ON e.categoria = t.id_tipologica 
+      WHERE e.attivo = 1 AND e.data_fine >= CURDATE()
+      ORDER BY e.data_inizio ASC, e.orario_inizio ASC
+    `);
+    res.status(200).json(rows);
+  } catch (error) {
+    console.error('Errore durante il recupero degli eventi attivi:', error);
+    res.status(500).json({ error: 'Errore nel recupero degli eventi attivi' });
   }
-}
+};
 
-
-// ✅ MOSTRA un evento singolo per ID (con JOIN su tipologiche)
-export async function getEventoById(req, res) {
+// Recupera un evento per ID
+export const getEventoById = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const result = await pool.query(`
-      SELECT e.*, t.descrizione AS categoria_descrizione
-      FROM evento e
-      JOIN tipologiche t ON e.categoria = t.id_tipologica
-      WHERE e.id_evento = $1
+    const [rows] = await pool.query(`
+      SELECT e.*, t.descrizione as categoria_nome,
+             COUNT(ce.id_cliente) as iscritti
+      FROM evento e 
+      LEFT JOIN tipologiche t ON e.categoria = t.id_tipologica 
+      LEFT JOIN cliente_evento ce ON e.id_evento = ce.id_evento
+      WHERE e.id_evento = ?
+      GROUP BY e.id_evento
     `, [id]);
 
-    if (result.rowCount === 0) {
-      return res.status(404).send("Evento non trovato");
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Evento non trovato' });
+    }
+    res.status(200).json(rows[0]);
+  } catch (error) {
+    console.error('Errore nel recupero dell\'evento:', error);
+    res.status(500).json({ error: 'Errore server' });
+  }
+};
+
+// Ricerca eventi con filtri
+export const ricercaEventi = async (req, res) => {
+  const { q, categoria, data_da, data_a, attivo } = req.query;
+
+  try {
+    let query = `
+      SELECT e.*, t.descrizione as categoria_nome 
+      FROM evento e 
+      LEFT JOIN tipologiche t ON e.categoria = t.id_tipologica 
+      WHERE 1=1
+    `;
+    let params = [];
+
+    if (q) {
+      query += ' AND (e.titolo LIKE ? OR e.luogo LIKE ? OR e.note LIKE ?)';
+      const searchTerm = `%${q}%`;
+      params.push(searchTerm, searchTerm, searchTerm);
     }
 
-    res.status(200).json(result.rows[0]);
-  } catch (err) {
-    console.error("Errore recupero evento:", err);
-    res.status(500).send("Errore del server");
-  }
-}
+    if (categoria) {
+      query += ' AND e.categoria = ?';
+      params.push(categoria);
+    }
 
-// ✅ MODIFICA un evento esistente
-export async function modificaEvento(req, res) {
-  const { id } = req.params;
+    if (data_da) {
+      query += ' AND e.data_inizio >= ?';
+      params.push(data_da);
+    }
+
+    if (data_a) {
+      query += ' AND e.data_fine <= ?';
+      params.push(data_a);
+    }
+
+    if (attivo !== undefined) {
+      query += ' AND e.attivo = ?';
+      params.push(attivo === 'true' ? 1 : 0);
+    }
+
+    query += ' ORDER BY e.data_inizio DESC, e.orario_inizio ASC';
+
+    const [rows] = await pool.query(query, params);
+    res.status(200).json(rows);
+  } catch (error) {
+    console.error('Errore durante la ricerca degli eventi:', error);
+    res.status(500).json({ error: 'Errore nella ricerca degli eventi' });
+  }
+};
+
+// Crea un nuovo evento
+export const creaEvento = async (req, res) => {
   const {
-    titolo,
-    categoria,
-    data_inizio,
-    data_fine,
-    orario_inizio,
-    orario_fine,
-    luogo,
-    note,
-    prezzo
+    titolo, categoria, data_inizio, data_fine, orario_inizio,
+    orario_fine, luogo, note, prezzo, attivo = 1
   } = req.body;
 
+  // Validazione campi obbligatori
+  if (!titolo || !categoria || !data_inizio || !data_fine) {
+    return res.status(400).json({ 
+      error: 'Campi obbligatori mancanti: titolo, categoria, data_inizio, data_fine' 
+    });
+  }
+
+  // Validazione date
+  if (new Date(data_inizio) > new Date(data_fine)) {
+    return res.status(400).json({ error: 'La data di inizio deve essere precedente alla data di fine' });
+  }
+
   try {
-    const query = `
-      UPDATE evento SET
-        titolo = $1,
-        categoria = $2,
-        data_inizio = $3,
-        data_fine = $4,
-        orario_inizio = $5,
-        orario_fine = $6,
-        luogo = $7,
-        note = $8,
-        prezzo = $9
-      WHERE id_evento = $10
-      RETURNING *;
-    `;
-    const valori = [
-      titolo, categoria, data_inizio, data_fine,
-      orario_inizio || null, orario_fine || null,
-      luogo || null, note || null, prezzo || null, id
-    ];
-
-    const result = await pool.query(query, valori);
-
-    if (result.rowCount === 0) {
-      return res.status(404).send("Evento non trovato");
+    // Verifica che la categoria esista
+    const [categoriaExists] = await pool.query('SELECT id_tipologica FROM tipologiche WHERE id_tipologica = ?', [categoria]);
+    if (categoriaExists.length === 0) {
+      return res.status(400).json({ error: 'Categoria non valida' });
     }
 
-    res.status(200).json({ messaggio: "Evento aggiornato", evento: result.rows[0] });
-  } catch (err) {
-    console.error("Errore aggiornamento evento:", err);
-    res.status(500).send("Errore del server");
-  }
-}
+    const [result] = await pool.query(
+      `INSERT INTO evento (
+        titolo, categoria, data_inizio, data_fine, orario_inizio,
+        orario_fine, luogo, note, prezzo, attivo
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        titolo, categoria, data_inizio, data_fine, orario_inizio,
+        orario_fine, luogo, note, prezzo, attivo
+      ]
+    );
 
-// ✅ ELIMINA un evento (cancellazione definitiva)
-export async function eliminaEvento(req, res) {
+    // Recupera l'evento appena creato con la categoria
+    const [newEvento] = await pool.query(`
+      SELECT e.*, t.descrizione as categoria_nome 
+      FROM evento e 
+      LEFT JOIN tipologiche t ON e.categoria = t.id_tipologica 
+      WHERE e.id_evento = ?
+    `, [result.insertId]);
+
+    res.status(201).json({
+      message: 'Evento creato con successo',
+      evento: newEvento[0]
+    });
+  } catch (error) {
+    console.error('Errore durante la creazione dell\'evento:', error);
+    res.status(500).json({ error: 'Errore nella creazione dell\'evento' });
+  }
+};
+
+// Modifica un evento esistente
+export const modificaEvento = async (req, res) => {
+  const { id } = req.params;
+  const {
+    titolo, categoria, data_inizio, data_fine, orario_inizio,
+    orario_fine, luogo, note, prezzo, attivo
+  } = req.body;
+
+  // Validazione campi obbligatori
+  if (!titolo || !categoria || !data_inizio || !data_fine) {
+    return res.status(400).json({ 
+      error: 'Campi obbligatori mancanti: titolo, categoria, data_inizio, data_fine' 
+    });
+  }
+
+  // Validazione date
+  if (new Date(data_inizio) > new Date(data_fine)) {
+    return res.status(400).json({ error: 'La data di inizio deve essere precedente alla data di fine' });
+  }
+
+  try {
+    // Verifica che l'evento esista
+    const [existing] = await pool.query('SELECT id_evento FROM evento WHERE id_evento = ?', [id]);
+    if (existing.length === 0) {
+      return res.status(404).json({ error: 'Evento non trovato' });
+    }
+
+    // Verifica che la categoria esista
+    const [categoriaExists] = await pool.query('SELECT id_tipologica FROM tipologiche WHERE id_tipologica = ?', [categoria]);
+    if (categoriaExists.length === 0) {
+      return res.status(400).json({ error: 'Categoria non valida' });
+    }
+
+    const [result] = await pool.query(
+      `UPDATE evento SET
+        titolo = ?, categoria = ?, data_inizio = ?, data_fine = ?, orario_inizio = ?,
+        orario_fine = ?, luogo = ?, note = ?, prezzo = ?, attivo = ?
+      WHERE id_evento = ?`,
+      [
+        titolo, categoria, data_inizio, data_fine, orario_inizio,
+        orario_fine, luogo, note, prezzo, attivo, id
+      ]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Evento non trovato' });
+    }
+
+    // Recupera l'evento aggiornato
+    const [updatedEvento] = await pool.query(`
+      SELECT e.*, t.descrizione as categoria_nome 
+      FROM evento e 
+      LEFT JOIN tipologiche t ON e.categoria = t.id_tipologica 
+      WHERE e.id_evento = ?
+    `, [id]);
+
+    res.status(200).json({
+      message: 'Evento aggiornato con successo',
+      evento: updatedEvento[0]
+    });
+  } catch (error) {
+    console.error('Errore durante l\'aggiornamento dell\'evento:', error);
+    res.status(500).json({ error: 'Errore nell\'aggiornamento dell\'evento' });
+  }
+};
+
+// Elimina un evento
+export const eliminaEvento = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const result = await pool.query(
-      `DELETE FROM evento WHERE id_evento = $1 RETURNING *`,
-      [id]
-    );
-
-    if (result.rowCount === 0) {
-      return res.status(404).send("Evento non trovato");
+    // Verifica che l'evento esista
+    const [existing] = await pool.query('SELECT id_evento FROM evento WHERE id_evento = ?', [id]);
+    if (existing.length === 0) {
+      return res.status(404).json({ error: 'Evento non trovato' });
     }
 
-    res.status(200).json({ messaggio: "Evento eliminato", evento: result.rows[0] });
-  } catch (err) {
-    console.error("Errore eliminazione evento:", err);
-    res.status(500).send("Errore del server");
+    // Verifica se ci sono iscrizioni all'evento
+    const [iscrizioni] = await pool.query('SELECT COUNT(*) as count FROM cliente_evento WHERE id_evento = ?', [id]);
+    if (iscrizioni[0].count > 0) {
+      return res.status(409).json({ 
+        error: 'Impossibile eliminare: evento con iscrizioni esistenti',
+        iscrizioni_attive: iscrizioni[0].count
+      });
+    }
+
+    await pool.query('DELETE FROM evento WHERE id_evento = ?', [id]);
+    res.status(200).json({ message: 'Evento eliminato con successo' });
+  } catch (error) {
+    console.error('Errore durante l\'eliminazione dell\'evento:', error);
+    res.status(500).json({ error: 'Errore nell\'eliminazione dell\'evento' });
   }
-}
+};
+
+// Attiva/Disattiva evento
+export const toggleEventoAttivo = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    // Recupera lo stato attuale
+    const [current] = await pool.query('SELECT attivo FROM evento WHERE id_evento = ?', [id]);
+    if (current.length === 0) {
+      return res.status(404).json({ error: 'Evento non trovato' });
+    }
+
+    const nuovoStato = current[0].attivo ? 0 : 1;
+
+    await pool.query('UPDATE evento SET attivo = ? WHERE id_evento = ?', [nuovoStato, id]);
+
+    res.status(200).json({ 
+      message: `Evento ${nuovoStato ? 'attivato' : 'disattivato'} con successo`,
+      attivo: nuovoStato
+    });
+  } catch (error) {
+    console.error('Errore durante il cambio stato evento:', error);
+    res.status(500).json({ error: 'Errore nel cambio stato evento' });
+  }
+};

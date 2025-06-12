@@ -1,99 +1,213 @@
--- =============================
--- TABELLA LOGIN
--- =============================
--- Tabella per memorizzare gli accessi degli utenti
--- Utilizza SERIAL per generare automaticamente ID univoci
--- TEXT NOT NULL impone che i campi siano obbligatori
+-- phpMyAdmin SQL Dump
+-- version 5.2.2
+-- https://www.phpmyadmin.net/
+--
+-- Host: localhost:3306
+-- Creato il: Giu 12, 2025 alle 10:33
+-- Versione del server: 10.11.13-MariaDB-0ubuntu0.24.04.1
+-- Versione PHP: 8.4.7
 
-CREATE TABLE login (
-    id_login SERIAL PRIMARY KEY,         -- Chiave primaria: ID autoincrementale
-    username TEXT NOT NULL,              -- Nome utente (obbligatorio)
-    password TEXT NOT NULL               -- Password (obbligatoria; si consiglia di criptarla)
-);
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
 
--- =============================
--- TABELLA CLIENTE
--- =============================
--- Memorizza i dati anagrafici dei clienti dell'associazione
 
-CREATE TABLE cliente (
-    id_cliente SERIAL PRIMARY KEY,         -- ID univoco cliente (SERIAL = intero autoincrementale)
-    numero_tessera SERIAL UNIQUE,          -- Tessera generata automaticamente (UNIQUE = non si può ripetere)
-    cellulare VARCHAR(20),                 -- Numero di telefono (opzionale)
-    nome VARCHAR(100),                     -- Nome (opzionale)
-    cognome_rag_soc VARCHAR(150) NOT NULL,-- Cognome o Ragione Sociale (obbligatorio)
-    luogo_nascita VARCHAR(100),            -- Luogo di nascita (opzionale)
-    data_nascita DATE NOT NULL,            -- Data di nascita (obbligatoria)
-    data_iscrizione DATE NOT NULL,         -- Data di iscrizione all’associazione (obbligatoria)
-    data_scadenza DATE NOT NULL,           -- Scadenza tessera (obbligatoria)
-    indirizzo VARCHAR(200),                -- Indirizzo di residenza (opzionale)
-    citta VARCHAR(100),                    -- Città (opzionale)
-    provincia VARCHAR(50),                 -- Provincia (opzionale)
-    cap VARCHAR(20),                       -- CAP (opzionale)
-    cf_piva VARCHAR(50),                   -- Codice Fiscale o Partita IVA (opzionale)
-    email VARCHAR(150) NOT NULL,           -- Email obbligatoria
-    note TEXT                              -- Note aggiuntive
-);
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
 
--- =============================
--- TABELLA TIPOLOGICHE
--- =============================
--- Contiene l’elenco delle categorie (tipologie) degli eventi
+--
+-- Database: `bike_db3`
+--
 
-CREATE TABLE tipologiche (
-    id_tipologica SERIAL PRIMARY KEY,      -- ID categoria autoincrementale
-    descrizione VARCHAR(255) NOT NULL      -- Descrizione della tipologia (obbligatoria)
-);
+-- --------------------------------------------------------
 
--- =============================
--- TABELLA EVENTO
--- =============================
--- Elenco eventi organizzati dall’associazione
--- Collega ogni evento a una categoria tramite FOREIGN KEY
+--
+-- Struttura della tabella `cliente`
+--
 
-CREATE TABLE evento (
-  id_evento SERIAL PRIMARY KEY,            -- ID evento autoincrementale
-  titolo VARCHAR(255) NOT NULL,            -- Titolo evento (obbligatorio)
-  categoria INTEGER NOT NULL               -- Collegamento alla categoria (tipologica)
-    REFERENCES tipologiche(id_tipologica), -- FOREIGN KEY: relazione con tipologiche (campo id_tipologica)
-  data_inizio DATE NOT NULL,               -- Data inizio evento
-  data_fine DATE NOT NULL,                 -- Data fine evento
-  orario_inizio TIME,                      -- Orario inizio (opzionale)
-  orario_fine TIME,                        -- Orario fine (opzionale)
-  luogo VARCHAR(255),                      -- Luogo dell’evento
-  note TEXT,                               -- Note aggiuntive
-  prezzo NUMERIC(10, 2),                   -- Prezzo in euro (es. 99.99) opzionale
-  attivo BOOLEAN DEFAULT true,             -- Flag per indicare se l’evento è attivo (default true)
-  creato_il TIMESTAMP DEFAULT CURRENT_TIMESTAMP -- Data e ora di creazione (default: momento attuale)
-);
+CREATE TABLE `cliente` (
+  `id_cliente` int(11) NOT NULL,
+  `numero_tessera` int(11) DEFAULT NULL,
+  `cellulare` varchar(20) DEFAULT NULL,
+  `nome` varchar(100) DEFAULT NULL,
+  `cognome_rag_soc` varchar(150) NOT NULL,
+  `luogo_nascita` varchar(100) DEFAULT NULL,
+  `data_nascita` date NOT NULL,
+  `data_iscrizione` date NOT NULL,
+  `data_scadenza` date NOT NULL,
+  `indirizzo` varchar(200) DEFAULT NULL,
+  `citta` varchar(100) DEFAULT NULL,
+  `provincia` varchar(50) DEFAULT NULL,
+  `cap` varchar(20) DEFAULT NULL,
+  `cf_piva` varchar(50) DEFAULT NULL,
+  `email` varchar(150) NOT NULL,
+  `note` text DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
--- =============================
--- TABELLA CLIENTE_EVENTO
--- =============================
--- Tabella di relazione molti-a-molti tra clienti e eventi
--- Serve a registrare le iscrizioni dei clienti agli eventi
+--
+-- Trigger `cliente`
+--
+DELIMITER $$
+CREATE TRIGGER `trg_set_numero_tessera` BEFORE INSERT ON `cliente` FOR EACH ROW BEGIN
+    DECLARE max_tessera INT;
 
-CREATE TABLE cliente_evento (
-  id_cliente_evento SERIAL PRIMARY KEY,    -- ID univoco dell’iscrizione
+    IF NEW.numero_tessera IS NULL THEN
+        SELECT IFNULL(MAX(numero_tessera), 0) + 1 INTO max_tessera FROM cliente;
+        SET NEW.numero_tessera = max_tessera;
+    END IF;
+END
+$$
+DELIMITER ;
 
-  id_cliente INTEGER NOT NULL,             -- Cliente che si iscrive (campo obbligatorio)
-  id_evento INTEGER NOT NULL,              -- Evento a cui è iscritto (campo obbligatorio)
+-- --------------------------------------------------------
 
-  data_iscrizione TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Data/ora dell’iscrizione (di default: ora corrente)
+--
+-- Struttura della tabella `cliente_evento`
+--
 
-  -- FOREIGN KEY: collega al cliente
-  CONSTRAINT fk_cliente
-    FOREIGN KEY (id_cliente)
-    REFERENCES cliente (id_cliente)
-    ON DELETE CASCADE,                     -- Se si elimina un cliente, vengono eliminate le sue iscrizioni
+CREATE TABLE `cliente_evento` (
+  `id_cliente_evento` int(11) NOT NULL,
+  `id_cliente` int(11) NOT NULL,
+  `id_evento` int(11) NOT NULL,
+  `data_iscrizione` timestamp NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
-  -- FOREIGN KEY: collega all’evento
-  CONSTRAINT fk_evento
-    FOREIGN KEY (id_evento)
-    REFERENCES evento (id_evento)
-    ON DELETE CASCADE,                     -- Se si elimina un evento, vengono eliminate le iscrizioni collegate
+-- --------------------------------------------------------
 
-  -- UNIQUE: garantisce che un cliente possa iscriversi una sola volta a uno stesso evento
-  CONSTRAINT univoco_cliente_evento
-    UNIQUE (id_cliente, id_evento)
-);
+--
+-- Struttura della tabella `evento`
+--
+
+CREATE TABLE `evento` (
+  `id_evento` int(11) NOT NULL,
+  `titolo` varchar(255) NOT NULL,
+  `categoria` int(11) NOT NULL,
+  `data_inizio` date NOT NULL,
+  `data_fine` date NOT NULL,
+  `orario_inizio` time DEFAULT NULL,
+  `orario_fine` time DEFAULT NULL,
+  `luogo` varchar(255) DEFAULT NULL,
+  `note` text DEFAULT NULL,
+  `prezzo` decimal(10,2) DEFAULT NULL,
+  `attivo` tinyint(1) DEFAULT 1,
+  `creato_il` timestamp NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Struttura della tabella `login`
+--
+
+CREATE TABLE `login` (
+  `id_login` int(11) NOT NULL,
+  `username` text NOT NULL,
+  `password` text NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Struttura della tabella `tipologiche`
+--
+
+CREATE TABLE `tipologiche` (
+  `id_tipologica` int(11) NOT NULL,
+  `descrizione` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+
+--
+-- Indici per le tabelle scaricate
+--
+
+--
+-- Indici per le tabelle `cliente`
+--
+ALTER TABLE `cliente`
+  ADD PRIMARY KEY (`id_cliente`),
+  ADD UNIQUE KEY `numero_tessera` (`numero_tessera`);
+
+--
+-- Indici per le tabelle `cliente_evento`
+--
+ALTER TABLE `cliente_evento`
+  ADD PRIMARY KEY (`id_cliente_evento`),
+  ADD UNIQUE KEY `univoco_cliente_evento` (`id_cliente`,`id_evento`),
+  ADD KEY `fk_evento` (`id_evento`);
+
+--
+-- Indici per le tabelle `evento`
+--
+ALTER TABLE `evento`
+  ADD PRIMARY KEY (`id_evento`),
+  ADD KEY `categoria` (`categoria`);
+
+--
+-- Indici per le tabelle `login`
+--
+ALTER TABLE `login`
+  ADD PRIMARY KEY (`id_login`);
+
+--
+-- Indici per le tabelle `tipologiche`
+--
+ALTER TABLE `tipologiche`
+  ADD PRIMARY KEY (`id_tipologica`);
+
+--
+-- AUTO_INCREMENT per le tabelle scaricate
+--
+
+--
+-- AUTO_INCREMENT per la tabella `cliente`
+--
+ALTER TABLE `cliente`
+  MODIFY `id_cliente` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT per la tabella `cliente_evento`
+--
+ALTER TABLE `cliente_evento`
+  MODIFY `id_cliente_evento` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT per la tabella `evento`
+--
+ALTER TABLE `evento`
+  MODIFY `id_evento` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT per la tabella `login`
+--
+ALTER TABLE `login`
+  MODIFY `id_login` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT per la tabella `tipologiche`
+--
+ALTER TABLE `tipologiche`
+  MODIFY `id_tipologica` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- Limiti per le tabelle scaricate
+--
+
+--
+-- Limiti per la tabella `cliente_evento`
+--
+ALTER TABLE `cliente_evento`
+  ADD CONSTRAINT `fk_cliente` FOREIGN KEY (`id_cliente`) REFERENCES `cliente` (`id_cliente`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_evento` FOREIGN KEY (`id_evento`) REFERENCES `evento` (`id_evento`) ON DELETE CASCADE;
+
+--
+-- Limiti per la tabella `evento`
+--
+ALTER TABLE `evento`
+  ADD CONSTRAINT `evento_ibfk_1` FOREIGN KEY (`categoria`) REFERENCES `tipologiche` (`id_tipologica`);
+COMMIT;
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;

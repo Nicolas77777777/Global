@@ -1,30 +1,40 @@
+// src/routes/clienteEventoRoutes.js
 import express from 'express';
 import {
+  getIscrizioni,
+  getIscrizioniByCliente,
+  getIscrizioniByEvento,
   iscriviCliente,
-  clientiPerEvento,
-  eventiPerCliente,
   rimuoviIscrizione,
-  esportaIscrittiEvento,
-  esportaIscrittiEventoPDF
-  
+  rimuoviIscrizioneByClienteEvento,
+  verificaIscrizione,
+  getStatisticheIscrizioni
 } from '../controllers/clienteEventoController.js';
 
 const router = express.Router();
 
-// 🔽 POST: Iscrivi un cliente a un evento
-router.post('/iscrivi', iscriviCliente);
+// Route per recuperare tutte le iscrizioni
+router.get('/', getIscrizioni);
 
-// 🔽 GET: Tutti i clienti iscritti a un evento
-router.get('/evento/:id_evento/clienti', clientiPerEvento);
+// Route per statistiche iscrizioni
+router.get('/statistiche', getStatisticheIscrizioni);
 
-// 🔽 GET: Tutti gli eventi a cui è iscritto un cliente
-router.get('/cliente/:id_cliente/eventi', eventiPerCliente);
+// Route per verificare iscrizione specifica
+router.get('/verifica/:id_cliente/:id_evento', verificaIscrizione);
 
-// 🔽 DELETE: Rimuovi iscrizione
-router.delete('/rimuovi', rimuoviIscrizione);
+// Route per iscrizioni di un cliente
+router.get('/cliente/:id_cliente', getIscrizioniByCliente);
 
-router.get('/evento/:id_evento/export', esportaIscrittiEvento);
+// Route per iscrizioni di un evento
+router.get('/evento/:id_evento', getIscrizioniByEvento);
 
-router.get('/evento/:id_evento/export-pdf', esportaIscrittiEventoPDF);
+// Route per iscrivere un cliente a un evento
+router.post('/', iscriviCliente);
+
+// Route per rimuovere un'iscrizione per ID
+router.delete('/:id', rimuoviIscrizione);
+
+// Route per rimuovere iscrizione specificando cliente ed evento
+router.delete('/cliente/:id_cliente/evento/:id_evento', rimuoviIscrizioneByClienteEvento);
 
 export default router;

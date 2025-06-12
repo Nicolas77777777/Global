@@ -1,28 +1,40 @@
+// src/routes/eventoRoutes.js
 import express from 'express';
 import {
-  creaEvento,
-  ricercaEventi,
+  getEventi,
+  getEventiAttivi,
   getEventoById,
+  ricercaEventi,
+  creaEvento,
   modificaEvento,
-  eliminaEvento
+  eliminaEvento,
+  toggleEventoAttivo
 } from '../controllers/eventoController.js';
 
 const router = express.Router();
 
-// 🔽 Crea un nuovo evento
-router.post('/nuovo', creaEvento);
+// Route per recuperare tutti gli eventi
+router.get('/', getEventi);
 
-// 🔽 Ricerca eventi (filtro opzionale per titolo o categoria)
+// Route per ricerca eventi (deve essere prima di /:id)
 router.get('/ricerca', ricercaEventi);
 
-// 🔽 Ottieni evento per ID
+// Route per eventi attivi
+router.get('/attivi', getEventiAttivi);
+
+// Route per recuperare un evento specifico
 router.get('/:id', getEventoById);
 
-// 🔽 Modifica evento
-router.put('/:id/modifica', modificaEvento);
+// Route per creare un nuovo evento
+router.post('/', creaEvento);
 
-// 🔽 Elimina evento
-router.delete('/:id/elimina', eliminaEvento);
+// Route per modificare un evento
+router.put('/:id', modificaEvento);
+
+// Route per attivare/disattivare un evento
+router.patch('/:id/toggle', toggleEventoAttivo);
+
+// Route per eliminare un evento
+router.delete('/:id', eliminaEvento);
 
 export default router;
-
