@@ -1,6 +1,6 @@
 PORT=3000
-DB_USER=admin
+DB_USER=admin1
 DB_PASSWORD=4TfkotJ4Ciyi3a$?
 DB_HOST=localhost
-DB_PORT=5432
+DB_PORT=3306
 DB_DATABASE=bike_db3
