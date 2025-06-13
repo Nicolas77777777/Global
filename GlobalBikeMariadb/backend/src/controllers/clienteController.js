@@ -1,214 +1,252 @@
-// src/controllers/loginController.js
+// src/controllers/clienteController.js
 import { pool } from '../db/db.js';
-import bcrypt from 'bcrypt'; // Aggiungere per sicurezza password
-import jwt from 'jsonwebtoken'; // Aggiungere per JWT tokens
 
-// Registra un nuovo utente
-export const registraUtente = async (req, res) => {
-  const { username, password } = req.body;
-
-  // Validazione input
-  if (!username || !password) {
-    return res.status(400).json({ error: 'Username e password sono obbligatori' });
-  }
-
-  if (password.length < 6) {
-    return res.status(400).json({ error: 'La password deve essere di almeno 6 caratteri' });
-  }
-
+// Recupera tutti i clienti
+export const getClienti = async (req, res) => {
   try {
-    // Verifica se l'utente esiste già
-    const [existing] = await pool.query('SELECT username FROM login WHERE username = ?', [username]);
-    if (existing.length > 0) {
-      return res.status(409).json({ error: 'Username già esistente' });
-    }
-
-    // Hash della password per sicurezza
-    const saltRounds = 12;
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
-
-    const [result] = await pool.query(
-      'INSERT INTO login (username, password) VALUES (?, ?)',
-      [username, hashedPassword]
-    );
-
-    res.status(201).json({ 
-      message: 'Utente registrato con successo', 
-      id_login: result.insertId,
-      username: username
-    });
-  } catch (error) {
-    console.error('Errore inserimento login:', error);
-    res.status(500).json({ error: 'Errore interno del server' });
-  }
-};
-
-// Verifica login e autentica utente
-export const autenticaUtente = async (req, res) => {
-  const { username, password } = req.body;
-
-  // Validazione input
-  if (!username || !password) {
-    return res.status(400).json({ error: 'Username e password sono obbligatori' });
-  }
-
-  try {
-    const [rows] = await pool.query(
-      'SELECT id_login, username, password FROM login WHERE username = ?',
-      [username]
-    );
-
-    if (rows.length === 0) {
-      return res.status(401).json({ error: 'Credenziali non valide' });
-    }
-
-    const user = rows[0];
-
-    // Verifica password (assumendo che le password siano hashate)
-    const isValidPassword = await bcrypt.compare(password, user.password);
-
-    if (!isValidPassword) {
-      return res.status(401).json({ error: 'Credenziali non valide' });
-    }
-
-    // Genera JWT token (opzionale - richiede JWT_SECRET in environment)
-    const token = jwt.sign(
-      { 
-        id_login: user.id_login, 
-        username: user.username 
-      },
-      process.env.JWT_SECRET || 'default_secret', // Usare variabile ambiente in produzione
-      { expiresIn: '24h' }
-    );
-
-    res.status(200).json({
-      message: 'Login effettuato con successo',
-      user: {
-        id_login: user.id_login,
-        username: user.username
-      },
-      token: token
-    });
-
-  } catch (error) {
-    console.error('Errore durante l\'autenticazione:', error);
-    res.status(500).json({ error: 'Errore interno del server' });
-  }
-};
-
-// Verifica login semplice (backward compatibility)
-export const controllaLogin = async (req, res) => {
-  const { username, password } = req.body;
-
-  try {
-    const [rows] = await pool.query(
-      'SELECT id_login, username FROM login WHERE username = ? AND password = ?',
-      [username, password]
-    );
-
-    if (rows.length > 0) {
-      res.status(200).json({
-        message: 'Login valido',
-        user: rows[0]
-      });
-    } else {
-      res.status(401).json({ error: 'Credenziali non valide' });
-    }
-  } catch (error) {
-    console.error('Errore lettura login:', error);
-    res.status(500).json({ error: 'Errore interno del server' });
-  }
-};
-
-// Inserimento login semplice (backward compatibility)
-export const inserisciLogin = async (req, res) => {
-  const { username, password } = req.body;
-
-  try {
-    const [result] = await pool.query(
-      'INSERT INTO login (username, password) VALUES (?, ?)',
-      [username, password]
-    );
-    res.status(201).json({ 
-      message: 'Utente registrato con successo', 
-      insertId: result.insertId 
-    });
-  } catch (error) {
-    console.error('Errore inserimento login:', error);
-    
-    if (error.code === 'ER_DUP_ENTRY') {
-      return res.status(409).json({ error: 'Username già esistente' });
-    }
-    
-    res.status(500).json({ error: 'Errore interno del server' });
-  }
-};
-
-// Ottieni tutti gli utenti (solo per admin)
-export const getUtenti = async (req, res) => {
-  try {
-    const [rows] = await pool.query('SELECT id_login, username FROM login ORDER BY username');
+    const [rows] = await pool.query('SELECT * FROM cliente ORDER BY cognome_rag_soc, nome');
     res.status(200).json(rows);
   } catch (error) {
-    console.error('Errore durante il recupero degli utenti:', error);
-    res.status(500).json({ error: 'Errore nel recupero degli utenti' });
+    console.error('Errore durante il recupero dei clienti:', error);
+    res.status(500).json({ error: 'Errore nel recupero dei clienti' });
   }
 };
 
-// Elimina utente
-export const eliminaUtente = async (req, res) => {
+// Recupera un cliente per ID
+export const getClienteById = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const [result] = await pool.query('DELETE FROM login WHERE id_login = ?', [id]);
+    const [rows] = await pool.query('SELECT * FROM cliente WHERE id_cliente = ?', [id]);
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Cliente non trovato' });
+    }
+    res.status(200).json(rows[0]);
+  } catch (error) {
+    console.error('Errore nel recupero del cliente:', error);
+    res.status(500).json({ error: 'Errore server' });
+  }
+};
+
+// Ricerca clienti con filtri
+export const ricercaCliente = async (req, res) => {
+  const { q, numero_tessera, email, cellulare } = req.query;
+
+  try {
+    let query = 'SELECT * FROM cliente WHERE 1=1';
+    let params = [];
+
+    if (q) {
+      query += ' AND (nome LIKE ? OR cognome_rag_soc LIKE ? OR email LIKE ?)';
+      const searchTerm = `%${q}%`;
+      params.push(searchTerm, searchTerm, searchTerm);
+    }
+
+    if (numero_tessera) {
+      query += ' AND numero_tessera = ?';
+      params.push(numero_tessera);
+    }
+
+    if (email) {
+      query += ' AND email LIKE ?';
+      params.push(`%${email}%`);
+    }
+
+    if (cellulare) {
+      query += ' AND cellulare LIKE ?';
+      params.push(`%${cellulare}%`);
+    }
+
+    query += ' ORDER BY cognome_rag_soc, nome';
+
+    const [rows] = await pool.query(query, params);
+    res.status(200).json(rows);
+  } catch (error) {
+    console.error('Errore durante la ricerca dei clienti:', error);
+    res.status(500).json({ error: 'Errore nella ricerca dei clienti' });
+  }
+};
+
+// Crea un nuovo cliente
+export const creaCliente = async (req, res) => {
+  const {
+    numero_tessera, cellulare, nome, cognome_rag_soc, luogo_nascita,
+    data_nascita, data_iscrizione, data_scadenza, indirizzo, citta,
+    provincia, cap, cf_piva, email, note
+  } = req.body;
+
+  // Validazione campi obbligatori
+  if (!cognome_rag_soc || !data_nascita || !data_iscrizione || !data_scadenza || !email) {
+    return res.status(400).json({ 
+      error: 'Campi obbligatori mancanti: cognome_rag_soc, data_nascita, data_iscrizione, data_scadenza, email' 
+    });
+  }
+
+  try {
+    const [result] = await pool.query(
+      `INSERT INTO cliente (
+        numero_tessera, cellulare, nome, cognome_rag_soc, luogo_nascita,
+        data_nascita, data_iscrizione, data_scadenza, indirizzo, citta,
+        provincia, cap, cf_piva, email, note
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        numero_tessera, cellulare, nome, cognome_rag_soc, luogo_nascita,
+        data_nascita, data_iscrizione, data_scadenza, indirizzo, citta,
+        provincia, cap, cf_piva, email, note
+      ]
+    );
     
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: 'Utente non trovato' });
-    }
-
-    res.status(200).json({ message: 'Utente eliminato con successo' });
+    // Recupera il cliente appena creato per restituire i dati completi
+    const [newClient] = await pool.query('SELECT * FROM cliente WHERE id_cliente = ?', [result.insertId]);
+    
+    res.status(201).json({ 
+      message: 'Cliente creato con successo', 
+      cliente: newClient[0]
+    });
   } catch (error) {
-    console.error('Errore durante l\'eliminazione dell\'utente:', error);
-    res.status(500).json({ error: 'Errore nell\'eliminazione dell\'utente' });
+    console.error('Errore durante la creazione del cliente:', error);
+    
+    // Gestione errori specifici
+    if (error.code === 'ER_DUP_ENTRY') {
+      if (error.message.includes('numero_tessera')) {
+        return res.status(409).json({ error: 'Numero tessera già esistente' });
+      }
+    }
+    
+    res.status(500).json({ error: 'Errore nella creazione del cliente' });
   }
 };
 
-// Cambia password
-export const cambiaPassword = async (req, res) => {
+// Modifica un cliente esistente
+export const modificaCliente = async (req, res) => {
   const { id } = req.params;
-  const { vecchiaPassword, nuovaPassword } = req.body;
+  const {
+    numero_tessera, cellulare, nome, cognome_rag_soc, luogo_nascita,
+    data_nascita, data_iscrizione, data_scadenza, indirizzo, citta,
+    provincia, cap, cf_piva, email, note
+  } = req.body;
 
-  if (!vecchiaPassword || !nuovaPassword) {
-    return res.status(400).json({ error: 'Vecchia e nuova password sono obbligatorie' });
-  }
-
-  if (nuovaPassword.length < 6) {
-    return res.status(400).json({ error: 'La nuova password deve essere di almeno 6 caratteri' });
+  // Validazione campi obbligatori
+  if (!cognome_rag_soc || !data_nascita || !data_iscrizione || !data_scadenza || !email) {
+    return res.status(400).json({ 
+      error: 'Campi obbligatori mancanti: cognome_rag_soc, data_nascita, data_iscrizione, data_scadenza, email' 
+    });
   }
 
   try {
-    // Recupera l'utente
-    const [users] = await pool.query('SELECT password FROM login WHERE id_login = ?', [id]);
-    if (users.length === 0) {
-      return res.status(404).json({ error: 'Utente non trovato' });
+    // Verifica che il cliente esista
+    const [existing] = await pool.query('SELECT id_cliente FROM cliente WHERE id_cliente = ?', [id]);
+    if (existing.length === 0) {
+      return res.status(404).json({ error: 'Cliente non trovato' });
     }
 
-    // Verifica vecchia password
-    const isValidOldPassword = await bcrypt.compare(vecchiaPassword, users[0].password);
-    if (!isValidOldPassword) {
-      return res.status(401).json({ error: 'Vecchia password non corretta' });
+    const [result] = await pool.query(
+      `UPDATE cliente SET
+        numero_tessera = ?, cellulare = ?, nome = ?, cognome_rag_soc = ?, luogo_nascita = ?,
+        data_nascita = ?, data_iscrizione = ?, data_scadenza = ?, indirizzo = ?, citta = ?,
+        provincia = ?, cap = ?, cf_piva = ?, email = ?, note = ?
+      WHERE id_cliente = ?`,
+      [
+        numero_tessera, cellulare, nome, cognome_rag_soc, luogo_nascita,
+        data_nascita, data_iscrizione, data_scadenza, indirizzo, citta,
+        provincia, cap, cf_piva, email, note, id
+      ]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Cliente non trovato' });
     }
 
-    // Hash nuova password
-    const saltRounds = 12;
-    const hashedNewPassword = await bcrypt.hash(nuovaPassword, saltRounds);
-
-    // Aggiorna password
-    await pool.query('UPDATE login SET password = ? WHERE id_login = ?', [hashedNewPassword, id]);
-
-    res.status(200).json({ message: 'Password cambiata con successo' });
+    // Recupera il cliente aggiornato
+    const [updatedClient] = await pool.query('SELECT * FROM cliente WHERE id_cliente = ?', [id]);
+    
+    res.status(200).json({ 
+      message: 'Cliente aggiornato con successo',
+      cliente: updatedClient[0]
+    });
   } catch (error) {
-    console.error('Errore durante il cambio password:', error);
-    res.status(500).json({ error: 'Errore nel cambio password' });
+    console.error('Errore durante l\'aggiornamento del cliente:', error);
+    
+    // Gestione errori specifici
+    if (error.code === 'ER_DUP_ENTRY') {
+      if (error.message.includes('numero_tessera')) {
+        return res.status(409).json({ error: 'Numero tessera già esistente' });
+      }
+    }
+    
+    res.status(500).json({ error: 'Errore nell\'aggiornamento del cliente' });
+  }
+};
+
+// Elimina un cliente
+export const eliminaCliente = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    // Verifica che il cliente esista
+    const [existing] = await pool.query('SELECT id_cliente FROM cliente WHERE id_cliente = ?', [id]);
+    if (existing.length === 0) {
+      return res.status(404).json({ error: 'Cliente non trovato' });
+    }
+
+    // Verifica se il cliente ha eventi associati
+    const [eventi] = await pool.query('SELECT COUNT(*) as count FROM cliente_evento WHERE id_cliente = ?', [id]);
+    if (eventi[0].count > 0) {
+      return res.status(409).json({ 
+        error: 'Impossibile eliminare il cliente: ha eventi associati',
+        eventi_associati: eventi[0].count
+      });
+    }
+
+    await pool.query('DELETE FROM cliente WHERE id_cliente = ?', [id]);
+    res.status(200).json({ message: 'Cliente eliminato con successo' });
+  } catch (error) {
+    console.error('Errore durante l\'eliminazione del cliente:', error);
+    res.status(500).json({ error: 'Errore nell\'eliminazione del cliente' });
+  }
+};
+
+// Funzione per aggiornare solo la data di scadenza
+export const aggiornaScadenza = async (req, res) => {
+  const { id } = req.params;
+  const { data_scadenza } = req.body;
+
+  if (!data_scadenza) {
+    return res.status(400).json({ error: 'Data scadenza richiesta' });
+  }
+
+  try {
+    const [result] = await pool.query(
+      'UPDATE cliente SET data_scadenza = ? WHERE id_cliente = ?',
+      [data_scadenza, id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Cliente non trovato' });
+    }
+
+    res.status(200).json({ message: 'Data scadenza aggiornata con successo' });
+  } catch (error) {
+    console.error('Errore durante l\'aggiornamento della scadenza:', error);
+    res.status(500).json({ error: 'Errore nell\'aggiornamento della scadenza' });
+  }
+};
+
+// Funzione per ottenere clienti con tessera in scadenza
+export const getClientiInScadenza = async (req, res) => {
+  const { giorni = 30 } = req.query; // Default 30 giorni
+
+  try {
+    const [rows] = await pool.query(
+      `SELECT * FROM cliente 
+       WHERE data_scadenza BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL ? DAY)
+       ORDER BY data_scadenza ASC`,
+      [parseInt(giorni)]
+    );
+    
+    res.status(200).json(rows);
+  } catch (error) {
+    console.error('Errore durante il recupero dei clienti in scadenza:', error);
+    res.status(500).json({ error: 'Errore nel recupero dei clienti in scadenza' });
   }
 };
