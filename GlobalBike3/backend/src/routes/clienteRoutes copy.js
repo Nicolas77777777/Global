@@ -1,4 +1,3 @@
-
 import express from 'express';
 import {
   creaCliente,
@@ -10,23 +9,12 @@ import {
 
 const router = express.Router();
 
-// ✅ POST: Crea nuovo cliente
 router.post('/', creaCliente);
-
-// ✅ GET: Ricerca clienti con filtri
 router.get('/ricerca', ricercaCliente);
-
-// ✅ GET: Recupera cliente per ID
 router.get('/:id', getClienteById);
-
-// ✅ GET: Recupera cliente per modifica (usa lo stesso controller)
 router.get('/:id/modifica', getClienteById);
-
-// ✅ POST: Modifica cliente
 router.post('/:id/modifica', modificaCliente);
-
-// ❌ ERRORE CORRETTO: Era /clienti/:id, deve essere /:id
-// Il frontend chiama /cliente/:id, quindi il route deve essere /:id
-router.delete('/:id', eliminaCliente);
+router.delete('/clienti/:id', eliminaCliente);
 
 export default router;
+

@@ -27,19 +27,47 @@ export const salvaNuovoCliente = async (req, res) => {
 };
 
 export const showFormRicerca = (req, res) => {
-  res.render('cliente_ricerca', { 
-    errore: null, 
-    successo: null,
-    clienti: null
-  });
+  console.log('🎯 === DEBUG SHOW FORM RICERCA ===');
+  console.log('📋 req.query completo:', req.query);
+  
+  // ✅ Controllo esplicito del parametro
+  const eliminaParam = req.query.elimina;
+  console.log('🔍 req.query.elimina:', eliminaParam, '(tipo:', typeof eliminaParam, ')');
+  
+  const modalitaEliminazione = eliminaParam === 'true';
+  console.log('🗑️ modalitaEliminazione calcolata:', modalitaEliminazione);
+  
+  const dataToRender = {
+    errore: req.query.errore || null, 
+    successo: req.query.successo || null,
+    clienti: null,
+    modalitaEliminazione: modalitaEliminazione
+  };
+  
+  console.log('🎨 Dati che sto per passare alla vista:', dataToRender);
+  console.log('🎯 === FINE DEBUG SHOW FORM RICERCA ===');
+  
+  res.render('cliente_ricerca', dataToRender);
 };
 
 export const eseguiRicerca = async (req, res) => {
+  console.log('🎯 === DEBUG ESEGUI RICERCA ===');
+  console.log('📋 req.query completo:', req.query);
+  
   try {
-    console.log('🔍 Parametri ricerca ricevuti:', req.query);
+    // ✅ Controllo esplicito del parametro
+    const eliminaParam = req.query.elimina;
+    console.log('🔍 req.query.elimina:', eliminaParam, '(tipo:', typeof eliminaParam, ')');
     
-    const queryString = new URLSearchParams(req.query).toString();
-    console.log('🔗 Query string generata:', queryString);
+    const modalitaEliminazione = eliminaParam === 'true';
+    console.log('🗑️ modalitaEliminazione calcolata:', modalitaEliminazione);
+    
+    // ✅ MODIFICATO: Rimuove il parametro 'elimina' dalla query string per il backend
+    const searchParams = { ...req.query };
+    delete searchParams.elimina;
+    
+    const queryString = new URLSearchParams(searchParams).toString();
+    console.log('🔗 Query string per backend:', queryString);
     
     // ✅ CORRETTO: Endpoint backend giusto (singolare cliente)
     const backendUrl = `http://localhost:3000/cliente/ricerca?${queryString}`;
@@ -56,17 +84,32 @@ export const eseguiRicerca = async (req, res) => {
     const clienti = await response.json();
     console.log('✅ Risultati ricevuti:', clienti.length, 'clienti trovati');
     
-    res.render('risultati_ricerca', { 
-      clienti,
+    const dataToRender = {
+      clienti: clienti,
       errore: null,
-      successo: clienti.length > 0 ? `Trovati ${clienti.length} clienti` : 'Nessun cliente trovato'
-    });
+      successo: clienti.length > 0 ? `Trovati ${clienti.length} clienti` : 'Nessun cliente trovato',
+      modalitaEliminazione: modalitaEliminazione
+    };
+    
+    console.log('🎨 Dati che sto per passare alla vista risultati_ricerca:');
+    console.log('   - clienti:', clienti.length, 'elementi');
+    console.log('   - modalitaEliminazione:', dataToRender.modalitaEliminazione);
+    console.log('   - errore:', dataToRender.errore);
+    console.log('   - successo:', dataToRender.successo);
+    console.log('🎯 === FINE DEBUG ESEGUI RICERCA ===');
+    
+    res.render('risultati_ricerca', dataToRender);
   } catch (err) {
     console.error("❌ Errore completo nella ricerca cliente:", err);
+    
+    const modalitaEliminazione = req.query.elimina === 'true';
+    console.log('🗑️ modalitaEliminazione (errore):', modalitaEliminazione);
+    
     res.render('risultati_ricerca', { 
       clienti: [],
       errore: `Errore durante la ricerca: ${err.message}`,
-      successo: null
+      successo: null,
+      modalitaEliminazione: modalitaEliminazione
     });
   }
 };
@@ -120,24 +163,49 @@ export const salvaModifica = async (req, res) => {
   }
 };
 
-// Elimina cliente
+// ✅ CORRETTO: Elimina cliente con endpoint e gestione errori corretti
 export async function eliminaCliente(req, res) {
   const { id } = req.params;
 
   try {
-    const response = await fetch(`http://localhost:8080/clienti/${id}`, {
+    console.log('🗑️ Eliminazione cliente ID:', id);
+    
+    // ✅ ENDPOINT CORRETTO: Ora corrisponde al backend /:id
+    const response = await fetch(`http://localhost:3000/cliente/${id}`, {
       method: 'DELETE'
     });
 
     if (response.ok) {
-      res.redirect('/clienti/ricerca');
+      // ✅ Il backend restituisce JSON con messaggio
+      const result = await response.json();
+      console.log('✅ Cliente eliminato con successo:', result.messaggio);
+      
+      res.redirect('/clienti/form?elimina=true&successo=Cliente eliminato con successo (incluse tutte le iscrizioni agli eventi)');
     } else {
-      const testo = await response.text();
-      console.error("Errore eliminazione:", testo);
-      res.status(response.status).send("Errore durante l'eliminazione del cliente");
+      // ✅ GESTIONE ERRORI: Il backend può restituire testo o JSON
+      let errorMessage = 'Errore durante l\'eliminazione del cliente';
+      
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.errore || errorData.messaggio || errorMessage;
+      } catch {
+        // Se non è JSON, prova come testo
+        const errorText = await response.text();
+        errorMessage = errorText || errorMessage;
+      }
+      
+      console.error("❌ Errore eliminazione:", response.status, errorMessage);
+      
+      if (response.status === 404) {
+        res.redirect('/clienti/form?elimina=true&errore=Cliente non trovato');
+      } else if (response.status === 400 || response.status === 409) {
+        res.redirect('/clienti/form?elimina=true&errore=Impossibile eliminare: cliente associato a vincoli nel database');
+      } else {
+        res.redirect(`/clienti/form?elimina=true&errore=${encodeURIComponent(errorMessage)}`);
+      }
     }
   } catch (err) {
-    console.error("Errore connessione:", err);
-    res.status(500).send("Errore interno al server");
+    console.error("❌ Errore connessione:", err);
+    res.redirect('/clienti/form?elimina=true&errore=Errore di connessione al server');
   }
 }
