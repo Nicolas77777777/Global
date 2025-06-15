@@ -6,7 +6,6 @@ export const showFormNuovo = (req, res) => {
 
 export const salvaNuovoCliente = async (req, res) => {
   try {
-    // ✅ CORRETTO: Endpoint backend giusto (singolare)
     const response = await fetch('http://localhost:3000/cliente', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -27,49 +26,28 @@ export const salvaNuovoCliente = async (req, res) => {
 };
 
 export const showFormRicerca = (req, res) => {
-  console.log('🎯 === DEBUG SHOW FORM RICERCA ===');
-  console.log('📋 req.query completo:', req.query);
+  const modalitaEliminazione = req.query.elimina === 'true';
   
-  // ✅ Controllo esplicito del parametro
-  const eliminaParam = req.query.elimina;
-  console.log('🔍 req.query.elimina:', eliminaParam, '(tipo:', typeof eliminaParam, ')');
-  
-  const modalitaEliminazione = eliminaParam === 'true';
-  console.log('🗑️ modalitaEliminazione calcolata:', modalitaEliminazione);
-  
-  const dataToRender = {
+  res.render('cliente_ricerca', { 
     errore: req.query.errore || null, 
     successo: req.query.successo || null,
     clienti: null,
-    modalitaEliminazione: modalitaEliminazione
-  };
-  
-  console.log('🎨 Dati che sto per passare alla vista:', dataToRender);
-  console.log('🎯 === FINE DEBUG SHOW FORM RICERCA ===');
-  
-  res.render('cliente_ricerca', dataToRender);
+    modalitaEliminazione
+  });
 };
 
 export const eseguiRicerca = async (req, res) => {
-  console.log('🎯 === DEBUG ESEGUI RICERCA ===');
-  console.log('📋 req.query completo:', req.query);
-  
   try {
-    // ✅ Controllo esplicito del parametro
-    const eliminaParam = req.query.elimina;
-    console.log('🔍 req.query.elimina:', eliminaParam, '(tipo:', typeof eliminaParam, ')');
+    console.log('🔍 Parametri ricerca ricevuti:', req.query);
     
-    const modalitaEliminazione = eliminaParam === 'true';
-    console.log('🗑️ modalitaEliminazione calcolata:', modalitaEliminazione);
+    const modalitaEliminazione = req.query.elimina === 'true';
     
-    // ✅ MODIFICATO: Rimuove il parametro 'elimina' dalla query string per il backend
     const searchParams = { ...req.query };
     delete searchParams.elimina;
     
     const queryString = new URLSearchParams(searchParams).toString();
-    console.log('🔗 Query string per backend:', queryString);
+    console.log('🔗 Query string generata:', queryString);
     
-    // ✅ CORRETTO: Endpoint backend giusto (singolare cliente)
     const backendUrl = `http://localhost:3000/cliente/ricerca?${queryString}`;
     console.log('📡 Chiamata backend:', backendUrl);
     
@@ -84,32 +62,203 @@ export const eseguiRicerca = async (req, res) => {
     const clienti = await response.json();
     console.log('✅ Risultati ricevuti:', clienti.length, 'clienti trovati');
     
-    const dataToRender = {
-      clienti: clienti,
+    res.render('risultati_ricerca', { 
+      clienti,
       errore: null,
       successo: clienti.length > 0 ? `Trovati ${clienti.length} clienti` : 'Nessun cliente trovato',
-      modalitaEliminazione: modalitaEliminazione
-    };
-    
-    console.log('🎨 Dati che sto per passare alla vista risultati_ricerca:');
-    console.log('   - clienti:', clienti.length, 'elementi');
-    console.log('   - modalitaEliminazione:', dataToRender.modalitaEliminazione);
-    console.log('   - errore:', dataToRender.errore);
-    console.log('   - successo:', dataToRender.successo);
-    console.log('🎯 === FINE DEBUG ESEGUI RICERCA ===');
-    
-    res.render('risultati_ricerca', dataToRender);
+      modalitaEliminazione
+    });
   } catch (err) {
     console.error("❌ Errore completo nella ricerca cliente:", err);
     
     const modalitaEliminazione = req.query.elimina === 'true';
-    console.log('🗑️ modalitaEliminazione (errore):', modalitaEliminazione);
     
     res.render('risultati_ricerca', { 
       clienti: [],
       errore: `Errore durante la ricerca: ${err.message}`,
       successo: null,
-      modalitaEliminazione: modalitaEliminazione
+      modalitaEliminazione
+    });
+  }
+};
+
+// ✅ NUOVA FUNZIONE: Mostra lista completa clienti
+export const mostraListaCompleta = async (req, res) => {
+  try {
+    console.log('📋 Caricamento lista completa clienti');
+    console.log('🔍 Parametri query ricevuti:', req.query);
+    
+    // Gestione parametri per ordinamento e filtri
+    const {
+      orderBy = 'cognome_rag_soc',
+      order = 'ASC',
+      attivi_solo = 'false',
+      page = '1'
+    } = req.query;
+    
+    // Paginazione
+    const itemsPerPage = 20;
+    const currentPage = parseInt(page) || 1;
+    const offset = (currentPage - 1) * itemsPerPage;
+    
+    // Costruisce l'URL per il backend
+    const queryParams = new URLSearchParams({
+      orderBy,
+      order,
+      attivi_solo,
+      limit: itemsPerPage.toString(),
+      offset: offset.toString()
+    });
+    
+    const backendUrl = `http://localhost:3000/cliente/lista?${queryParams}`;
+    console.log('📡 Chiamata backend lista:', backendUrl);
+    
+    const response = await fetch(backendUrl);
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ Errore backend lista:', response.status, errorText);
+      throw new Error(`Errore backend: ${response.status} - ${errorText}`);
+    }
+    
+    const data = await response.json();
+    console.log('✅ Lista ricevuta:', data.totale, 'clienti trovati');
+    
+    // Calcola info paginazione
+    const totalPages = Math.ceil(data.totale / itemsPerPage);
+    const hasNextPage = currentPage < totalPages;
+    const hasPrevPage = currentPage > 1;
+    
+    res.render('lista_clienti', {
+      clienti: data.clienti,
+      totale: data.totale,
+      parametri: data.parametri,
+      timestamp: data.timestamp,
+      paginazione: {
+        currentPage,
+        totalPages,
+        itemsPerPage,
+        hasNextPage,
+        hasPrevPage,
+        startItem: offset + 1,
+        endItem: Math.min(offset + itemsPerPage, data.totale)
+      },
+      filtri: {
+        orderBy,
+        order,
+        attivi_solo: attivi_solo === 'true'
+      },
+      errore: null,
+      successo: null
+    });
+    
+  } catch (err) {
+    console.error('❌ Errore caricamento lista clienti:', err);
+    res.render('lista_clienti', {
+      clienti: [],
+      totale: 0,
+      parametri: null,
+      timestamp: null,
+      paginazione: null,
+      filtri: null,
+      errore: `Errore durante il caricamento della lista: ${err.message}`,
+      successo: null
+    });
+  }
+};
+
+// ✅ NUOVA FUNZIONE: Mostra statistiche clienti
+export const mostraStatistiche = async (req, res) => {
+  try {
+    console.log('📊 Caricamento statistiche clienti');
+    
+    const response = await fetch('http://localhost:3000/cliente/statistiche');
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ Errore backend statistiche:', response.status, errorText);
+      throw new Error(`Errore backend: ${response.status} - ${errorText}`);
+    }
+    
+    const data = await response.json();
+    console.log('✅ Statistiche ricevute:', data.statistiche);
+    
+    res.render('dashboard_statistiche', {
+      statistiche: data.statistiche,
+      timestamp: data.timestamp,
+      errore: null,
+      successo: null
+    });
+    
+  } catch (err) {
+    console.error('❌ Errore caricamento statistiche:', err);
+    res.render('dashboard_statistiche', {
+      statistiche: null,
+      timestamp: null,
+      errore: `Errore durante il caricamento delle statistiche: ${err.message}`,
+      successo: null
+    });
+  }
+};
+
+// ✅ NUOVA FUNZIONE: Dashboard con overview (per la home migliorata) - VERSIONE SICURA
+export const mostraDashboardOverview = async (req, res) => {
+  try {
+    console.log('🏠 Caricamento dashboard overview');
+    
+    // Inizializza variabili con valori di default
+    let statistiche = null;
+    let ultimiClienti = [];
+    
+    try {
+      // Prova a caricare statistiche di base per la home
+      console.log('📊 Tentativo caricamento statistiche...');
+      const statsResponse = await fetch('http://localhost:3000/cliente/statistiche');
+      
+      if (statsResponse.ok) {
+        const statsData = await statsResponse.json();
+        statistiche = statsData.statistiche;
+        console.log('✅ Statistiche caricate:', statistiche);
+      } else {
+        console.log('⚠️ Statistiche non disponibili:', statsResponse.status);
+      }
+    } catch (statsError) {
+      console.log('⚠️ Errore caricamento statistiche (ignorato):', statsError.message);
+    }
+    
+    try {
+      // Prova a caricare ultimi clienti iscritti
+      console.log('👥 Tentativo caricamento ultimi clienti...');
+      const clientiResponse = await fetch('http://localhost:3000/cliente/lista?orderBy=data_iscrizione&order=DESC&limit=5');
+      
+      if (clientiResponse.ok) {
+        const clientiData = await clientiResponse.json();
+        ultimiClienti = clientiData.clienti || [];
+        console.log('✅ Ultimi clienti caricati:', ultimiClienti.length);
+      } else {
+        console.log('⚠️ Ultimi clienti non disponibili:', clientiResponse.status);
+      }
+    } catch (clientiError) {
+      console.log('⚠️ Errore caricamento ultimi clienti (ignorato):', clientiError.message);
+    }
+    
+    // Render della home con dati disponibili (anche se nulli)
+    res.render('home', {
+      statistiche: statistiche,
+      ultimiClienti: ultimiClienti,
+      errore: null,
+      successo: req.query.successo || null
+    });
+    
+  } catch (err) {
+    console.error('❌ Errore grave caricamento dashboard overview:', err);
+    
+    // Fallback: render home senza dati aggiuntivi
+    res.render('home', {
+      statistiche: null,
+      ultimiClienti: [],
+      errore: null,
+      successo: req.query.successo || null
     });
   }
 };
@@ -119,7 +268,6 @@ export const mostraModifica = async (req, res) => {
   try {
     console.log('🔧 Caricamento cliente per modifica, ID:', id);
     
-    // ✅ CORRETTO: Endpoint giusto (singolare)
     const response = await fetch(`http://localhost:3000/cliente/${id}`);
     if (!response.ok) {
       const errorText = await response.text();
@@ -142,9 +290,8 @@ export const salvaModifica = async (req, res) => {
   try {
     console.log('💾 Salvataggio modifica cliente ID:', id, 'Dati:', req.body);
     
-    // ✅ CORRETTO: Endpoint giusto (singolare)
     const response = await fetch(`http://localhost:3000/cliente/${id}/modifica`, {
-      method: 'POST', // Il backend usa POST per le modifiche
+      method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(req.body)
     });
@@ -163,33 +310,28 @@ export const salvaModifica = async (req, res) => {
   }
 };
 
-// ✅ CORRETTO: Elimina cliente con endpoint e gestione errori corretti
 export async function eliminaCliente(req, res) {
   const { id } = req.params;
 
   try {
     console.log('🗑️ Eliminazione cliente ID:', id);
     
-    // ✅ ENDPOINT CORRETTO: Ora corrisponde al backend /:id
     const response = await fetch(`http://localhost:3000/cliente/${id}`, {
       method: 'DELETE'
     });
 
     if (response.ok) {
-      // ✅ Il backend restituisce JSON con messaggio
       const result = await response.json();
       console.log('✅ Cliente eliminato con successo:', result.messaggio);
       
       res.redirect('/clienti/form?elimina=true&successo=Cliente eliminato con successo (incluse tutte le iscrizioni agli eventi)');
     } else {
-      // ✅ GESTIONE ERRORI: Il backend può restituire testo o JSON
       let errorMessage = 'Errore durante l\'eliminazione del cliente';
       
       try {
         const errorData = await response.json();
         errorMessage = errorData.errore || errorData.messaggio || errorMessage;
       } catch {
-        // Se non è JSON, prova come testo
         const errorText = await response.text();
         errorMessage = errorText || errorMessage;
       }

@@ -19,14 +19,10 @@ export const handleLogin = async (req, res) => {
     }
 
     const utente = await response.json();
-    console.log('✅ Login riuscito per utente:', utente[0]?.username);
-    
-    // ✅ CORRETTO: Redirect alla home invece di renderizzare direttamente
-    // Questo permette alla route /home di gestire correttamente il caricamento
-    res.redirect('/home');
+    res.render('home', { utente: utente[0] });
 
   } catch (err) {
-    console.error("❌ Errore autenticazione:", err);
+    console.error("Errore autenticazione:", err);
     res.render('login', { errore: 'Errore del server' });
   }
 };

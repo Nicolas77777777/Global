@@ -4,8 +4,6 @@ import {
   salvaNuovoCliente,
   showFormRicerca,
   eseguiRicerca,
-  mostraListaCompleta,    // ✅ NUOVO: Lista completa
-  mostraStatistiche,      // ✅ NUOVO: Statistiche
   mostraModifica,
   salvaModifica,
   eliminaCliente
@@ -19,21 +17,15 @@ router.get('/nuovo', showFormNuovo);
 router.post('/nuovo', salvaNuovoCliente);
 
 // Route per ricerca clienti
-router.get('/form', showFormRicerca);        // Mostra il form di ricerca
-router.get('/ricerca', eseguiRicerca);       // Esegue la ricerca
-router.get('/risultati', eseguiRicerca);     // Per compatibilità
-
-// ✅ NUOVO: Route per lista completa clienti
-router.get('/lista', mostraListaCompleta);
-
-// ✅ NUOVO: Route per statistiche clienti
-router.get('/statistiche', mostraStatistiche);
+router.get('/form', showFormRicerca);        // Mostra il form di ricerca (ora gestisce anche modalità eliminazione)
+router.get('/ricerca', eseguiRicerca);       // ✅ AGGIORNATA: Esegue la ricerca (ora gestisce anche modalità eliminazione)
+router.get('/risultati', eseguiRicerca);     // ✅ MANTENUTA: Per compatibilità
 
 // Route per modifica cliente
 router.get('/:id/modifica', mostraModifica);
 router.post('/:id/modifica', salvaModifica);
 
-// Route per eliminazione
+// ✅ CORRETTO: Route per eliminazione con parametro ID obbligatorio
 router.get('/elimina/:id', eliminaCliente);
 
 export default router;
